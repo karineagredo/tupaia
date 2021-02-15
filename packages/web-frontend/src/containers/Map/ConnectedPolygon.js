@@ -219,7 +219,6 @@ const mapStateToProps = (state, givenProps) => {
   const orgUnit = selectOrgUnit(state, organisationUnitCode);
   const coordinates = orgUnit ? orgUnit.location.region : undefined;
 
-  console.log('selectAreRegionLabelsPermanent(state)', selectAreRegionLabelsPermanent(state));
   return {
     permanentLabels: selectAreRegionLabelsPermanent(state),
     measureId,
