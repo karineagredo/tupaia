@@ -63,7 +63,7 @@ export const selectActiveTileSet = createSelector(
   },
 );
 
-export const selectAreRegionLabelsSticky = createSelector(
+export const selectAreRegionLabelsPermanent = createSelector(
   selectCurrentProject,
-  project => project.config && project.config.stickyRegionLabels,
+  project => project.config && project.config.permanentRegionLabels,
 );

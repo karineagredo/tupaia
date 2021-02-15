@@ -61,6 +61,7 @@ export class AreaTooltip extends Component {
 
 AreaTooltip.propTypes = {
   permanent: PropTypes.bool,
+  sticky: PropTypes.bool,
   text: PropTypes.string.isRequired,
   onMouseOver: PropTypes.func,
   onMouseOut: PropTypes.func,
@@ -68,6 +69,7 @@ AreaTooltip.propTypes = {
 
 AreaTooltip.defaultProps = {
   permanent: false,
+  sticky: false,
   onMouseOver: undefined,
   onMouseOut: undefined,
 };

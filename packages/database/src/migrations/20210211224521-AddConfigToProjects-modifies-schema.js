@@ -24,7 +24,7 @@ exports.up = function (db) {
   db.runSql(`ALTER TABLE project DROP COLUMN IF EXISTS tile_sets;`);
   return db.addColumn('project', 'config', {
     type: 'jsonb',
-    defaultValue: '{}',
+    defaultValue: '{ "permanentRegionLabels": true }',
   });
 };
 

@@ -21,7 +21,7 @@ import {
   selectAllMeasuresWithDisplayInfo,
   selectCurrentMeasureId,
   selectOrgUnitChildren,
-  selectAreRegionLabelsSticky,
+  selectAreRegionLabelsPermanent,
 } from '../../selectors';
 import ActivePolygon from './ActivePolygon';
 
@@ -67,7 +67,7 @@ class ConnectedPolygon extends Component {
       hasMeasureData,
       orgUnitMeasureData,
       measureOptions,
-      stickyLabels,
+      permanentLabels,
     } = this.props;
     const hasMeasureValue = orgUnitMeasureData || orgUnitMeasureData === 0;
 
@@ -81,8 +81,8 @@ class ConnectedPolygon extends Component {
 
     return (
       <AreaTooltip
-        permanent={!stickyLabels && isChildArea && !hasMeasureValue}
-        sticky={stickyLabels}
+        permanent={permanentLabels && isChildArea && !hasMeasureValue}
+        sticky={!permanentLabels}
         text={text}
       />
     );
@@ -151,7 +151,7 @@ ConnectedPolygon.propTypes = {
   }).isRequired,
   measureId: PropTypes.string,
   isActive: PropTypes.bool,
-  stickyLabels: PropTypes.bool,
+  permanentLabels: PropTypes.bool,
   isChildArea: PropTypes.bool,
   onChangeOrgUnit: PropTypes.func,
   coordinates: PropTypes.arrayOf(
@@ -172,7 +172,7 @@ ConnectedPolygon.propTypes = {
 ConnectedPolygon.defaultProps = {
   measureId: '',
   isActive: false,
-  stickyLabels: false,
+  permanentLabels: true,
   isChildArea: false,
   onChangeOrgUnit: () => {},
   coordinates: undefined,
@@ -219,8 +219,9 @@ const mapStateToProps = (state, givenProps) => {
   const orgUnit = selectOrgUnit(state, organisationUnitCode);
   const coordinates = orgUnit ? orgUnit.location.region : undefined;
 
+  console.log('selectAreRegionLabelsPermanent(state)', selectAreRegionLabelsPermanent(state));
   return {
-    stickyLabels: selectAreRegionLabelsSticky(state),
+    permanentLabels: selectAreRegionLabelsPermanent(state),
     measureId,
     coordinates,
     hasShadedChildren,

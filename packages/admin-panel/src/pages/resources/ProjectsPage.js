@@ -55,7 +55,7 @@ const FIELDS = [
     source: 'config',
     type: 'jsonTooltip',
     editConfig: { type: 'jsonEditor' },
-    secondaryLabel: 'eg. {tileSets: osm,satellite,terrain, stickyRegionLabels: true}',
+    secondaryLabel: 'eg. { "tileSets": "osm,satellite,terrain", "permanentRegionLabels": true }',
   },
   {
     Header: 'Sort',
