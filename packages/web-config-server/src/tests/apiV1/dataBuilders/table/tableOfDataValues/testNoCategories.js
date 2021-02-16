@@ -9,7 +9,7 @@ import { tableOfDataValues } from '/apiV1/dataBuilders';
 
 const assertTableResults = createAssertTableResults(
   tableOfDataValues,
-  DATA_VALUES.filter(({ organisationUnit }) => organisationUnit === 'TO_Nukuhc'),
+  DATA_VALUES.filter(({ organisationUnit }) => organisationUnit === 'TO2_Nukuhc'),
 );
 
 export const testNoCategories = () => {

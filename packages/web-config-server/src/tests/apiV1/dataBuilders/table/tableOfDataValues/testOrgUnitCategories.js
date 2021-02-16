@@ -12,7 +12,8 @@ const assertTableResults = createAssertTableResults(
   tableOfDataValues,
   // Sort results in DESC org unit order, to assert their ASC ordering in the results
   DATA_VALUES.filter(
-    ({ organisationUnit }) => organisationUnit === 'TO_Nukuhc' || organisationUnit === 'TO_Vainihc',
+    ({ organisationUnit }) =>
+      organisationUnit === 'TO2_Nukuhc' || organisationUnit === 'TO1_Vainihc',
   ).sort(getSortByKey('organisationUnit', { ascending: false })),
 );
 
@@ -27,8 +28,8 @@ export const testOrgUnitCategories = () => {
         },
         {
           rows: [
-            { dataElement: 'Smokers', categoryId: 'TO_Nukuhc', Col1: 1, Col2: 2 },
-            { dataElement: 'Smokers', categoryId: 'TO_Vainihc', Col1: 10, Col2: 20 },
+            { dataElement: 'Smokers', categoryId: 'TO2_Nukuhc', Col1: 1, Col2: 2 },
+            { dataElement: 'Smokers', categoryId: 'TO1_Vainihc', Col1: 10, Col2: 20 },
             { category: 'Nukunuku' },
             { category: 'Vaini' },
           ],
@@ -54,11 +55,11 @@ export const testOrgUnitCategories = () => {
         },
         {
           rows: [
-            { dataElement: 'Female', categoryId: 'TO_Nukuhc', Col1: 1, Col2: 3, Col3: 5, Col4: 7 },
-            { dataElement: 'Male', categoryId: 'TO_Nukuhc', Col1: 2, Col2: 4, Col3: 6, Col4: 8 },
+            { dataElement: 'Female', categoryId: 'TO2_Nukuhc', Col1: 1, Col2: 3, Col3: 5, Col4: 7 },
+            { dataElement: 'Male', categoryId: 'TO2_Nukuhc', Col1: 2, Col2: 4, Col3: 6, Col4: 8 },
             {
               dataElement: 'Female',
-              categoryId: 'TO_Vainihc',
+              categoryId: 'TO1_Vainihc',
               Col1: 10,
               Col2: 30,
               Col3: 50,
@@ -66,7 +67,7 @@ export const testOrgUnitCategories = () => {
             },
             {
               dataElement: 'Male',
-              categoryId: 'TO_Vainihc',
+              categoryId: 'TO1_Vainihc',
               Col1: 20,
               Col2: 40,
               Col3: 60,

@@ -34,42 +34,46 @@ export const DATA_ELEMENTS = {
 };
 
 export const DATA_VALUES = [
+  // Note: Data should not be sorted by org unit name,
+  // so that we can assert this as part of the tests
+  // Vaini
+  { dataElement: 'CD1', value: 10, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD2', value: 20, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD3', value: 30, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD4', value: 40, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD5', value: 50, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD6', value: 60, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD7', value: 70, organisationUnit: 'TO1_Vainihc' },
+  { dataElement: 'CD8', value: 80, organisationUnit: 'TO1_Vainihc' },
   // Nukunuku
-  { dataElement: 'CD1', value: 1, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD2', value: 2, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD3', value: 3, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD4', value: 4, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD5', value: 5, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD6', value: 6, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD7', value: 7, organisationUnit: 'TO_Nukuhc' },
-  { dataElement: 'CD8', value: 8, organisationUnit: 'TO_Nukuhc' },
+  { dataElement: 'CD1', value: 1, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD2', value: 2, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD3', value: 3, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD4', value: 4, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD5', value: 5, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD6', value: 6, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD7', value: 7, organisationUnit: 'TO2_Nukuhc' },
+  { dataElement: 'CD8', value: 8, organisationUnit: 'TO2_Nukuhc' },
   {
     dataElement: 'CD_Description',
     value: 'Communicable diseases description',
-    organisationUnit: 'TO_Nukuhc',
+    organisationUnit: 'TO2_Nukuhc',
   },
-  // Vaini
-  { dataElement: 'CD1', value: 10, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD2', value: 20, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD3', value: 30, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD4', value: 40, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD5', value: 50, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD6', value: 60, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD7', value: 70, organisationUnit: 'TO_Vainihc' },
-  { dataElement: 'CD8', value: 80, organisationUnit: 'TO_Vainihc' },
   // Haveluloto (with Options)
-  { dataElement: 'HP1', value: 1, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP2', value: 2, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP3', value: 3, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP4', value: 4, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP5', value: 5, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP6', value: 6, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP7', value: 7, organisationUnit: 'TO_HvlMCH' },
-  { dataElement: 'HP8', value: 8, organisationUnit: 'TO_HvlMCH' },
+  { dataElement: 'HP1', value: 1, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP2', value: 2, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP3', value: 3, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP4', value: 4, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP5', value: 5, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP6', value: 6, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP7', value: 7, organisationUnit: 'TO3_HvlMCH' },
+  { dataElement: 'HP8', value: 8, organisationUnit: 'TO3_HvlMCH' },
 ];
 
 export const ORG_UNITS = [
-  { code: 'TO_Nukuhc', name: 'Nukunuku' },
-  { code: 'TO_Vainihc', name: 'Vaini' },
-  { code: 'TO_HvlMCH', name: 'Haveluloto' },
+  // Org unit codes are in a different alphabetical order
+  // than the names on purpose
+  { code: 'TO1_Vainihc', name: 'Vaini' },
+  { code: 'TO2_Nukuhc', name: 'Nukunuku' },
+  { code: 'TO3_HvlMCH', name: 'Haveluloto' },
 ];

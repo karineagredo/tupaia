@@ -4,11 +4,11 @@
  */
 
 import flatten from 'lodash.flatten';
+import groupBy from 'lodash.groupby';
 import keyBy from 'lodash.keyby';
 
-import { reduceToDictionary, reduceToSet } from '@tupaia/utils';
+import { getSortByKey, getUniqueEntries, reduceToDictionary } from '@tupaia/utils';
 import { DataBuilder } from '/apiV1/dataBuilders/DataBuilder';
-
 import { TableConfig } from './TableConfig';
 import { getValuesByCell } from './getValuesByCell';
 import { TotalCalculator } from './TotalCalculator';
@@ -341,30 +341,25 @@ export class TableOfDataValuesBuilder extends DataBuilder {
   };
 
   buildOrgsFromResults() {
-    const orgUnitsWithData = reduceToSet(this.results, 'organisationUnit');
-    this.tableConfig.columns = Array.from(orgUnitsWithData);
+    const orgUnitCodes = this.results
+      .sort(getSortByKey('orgUnitName'))
+      .map(r => r.organisationUnit);
+    this.tableConfig.columns = getUniqueEntries(orgUnitCodes);
   }
 
   buildOrgsFromResultsWithCategories() {
-    const types = reduceToDictionary(this.results, 'typeName', 'categoryCode');
-    const sortedTypes = Object.keys(types).sort((a, b) => types[a] - types[b]);
-    const orgUnitTypes = reduceToDictionary(this.results, 'organisationUnit', 'typeName');
-    const columnCategories = new Map(sortedTypes.map(cat => [cat, []]));
-    Object.keys(orgUnitTypes).forEach(org => {
-      columnCategories.get(orgUnitTypes[org]).push(org);
-    });
-    const columns = [];
-    columnCategories.forEach((cols, cat) => {
-      columns.push({ category: cat, columns: cols });
-    });
-    this.tableConfig.columns = columns;
+    const resultsByOrgUnitType = groupBy(this.results, 'typeName');
+    this.tableConfig.columns = Object.entries(resultsByOrgUnitType)
+      .map(([orgUnitType, results]) => ({
+        category: orgUnitType,
+        columns: results.sort(getSortByKey('orgUnitName')).map(r => r.organisationUnit),
+      }))
+      .sort(getSortByKey('category'));
   }
 
   replaceOrgUnitCodesWithNames = async columns => {
-    const orgUnitCodesToName = await this.fetchOrgUnitCodesToName(
-      this.flattenColumnCategories(columns),
-    );
-    const swapNames = ({ title, key }) => ({ key, title: orgUnitCodesToName[title] });
+    const orgUnitCodeToName = reduceToDictionary(this.results, 'organisationUnit', 'orgUnitName');
+    const swapNames = ({ title, key }) => ({ key, title: orgUnitCodeToName[title] });
 
     if (this.hasColumnsInCategories(columns)) {
       const updatedColumns = columns.map(category => {
@@ -374,12 +369,6 @@ export class TableOfDataValuesBuilder extends DataBuilder {
       return updatedColumns;
     }
     return columns.map(swapNames);
-  };
-
-  fetchOrgUnitCodesToName = async columns => {
-    const orgUnitCodes = columns.map(c => c.title);
-    const orgUnits = await this.models.entity.find({ code: orgUnitCodes });
-    return reduceToDictionary(orgUnits, 'code', 'name');
   };
 
   flattenColumnCategories = columns => {
