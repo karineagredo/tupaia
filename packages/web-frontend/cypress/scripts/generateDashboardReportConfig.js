@@ -5,7 +5,7 @@
 
 import { snake } from 'case';
 
-import { filterEntities, filterValues, toArray } from '@tupaia/utils';
+import { compareAsc, filterEntities, filterValues, toArray } from '@tupaia/utils';
 import orgUnitMap from '../config/orgUnitMap.json';
 import { CONFIG_ROOT } from '../constants';
 
@@ -125,7 +125,7 @@ const getUrlsForReports = async (database, reports, reportIdToGroups) => {
   const urls = await Promise.all(reports.map(getUrlForReport));
 
   return {
-    urls: urls.filter(u => u).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    urls: urls.filter(u => u).sort(compareAsc),
     skippedReports: filterValues(skippedReports, r => r.length > 0),
   };
 };
