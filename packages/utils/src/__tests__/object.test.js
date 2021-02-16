@@ -10,7 +10,6 @@ import {
   mapKeys,
   mapValues,
   reduceToDictionary,
-  reduceToSet,
   getSortByKey,
   stripFields,
 } from '../object';
@@ -257,20 +256,6 @@ describe('object', () => {
 
     it.each(testData)('%s', (_, objectCollection, expected) => {
       expect(flattenToObject(objectCollection)).toStrictEqual(expected);
-    });
-  });
-
-  describe('reduceToSet()', () => {
-    const object1 = { id: 'id1', value: 10 };
-    const object2 = { id: 'id2', value: 20 };
-    const expectedResult = new Set(['id1', 'id2']);
-
-    it('should create a set out of an array of objects', () => {
-      expect(reduceToSet([object1, object2], 'id')).toStrictEqual(expectedResult);
-    });
-
-    it('should create a set out of an object dictionary', () => {
-      expect(reduceToSet({ id1: object1, id2: object2 }, 'id')).toStrictEqual(expectedResult);
     });
   });
 

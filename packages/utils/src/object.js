@@ -121,20 +121,6 @@ export const reduceToDictionary = (objectCollection, keyMapper, valueMapper) => 
 };
 
 /**
- * @param {ObjectCollection} objectCollection
- * @param {string} property
- * @returns {Set}
- */
-export const reduceToSet = (objectCollection, property) => {
-  const objects = collectionToArray(objectCollection);
-
-  return objects.reduce((set, { [property]: value }) => {
-    set.add(value);
-    return set;
-  }, new Set());
-};
-
-/**
  * Changes keys in `object` according to `mapping`
  *
  * @param {Object<string, any>} object
