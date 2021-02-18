@@ -2,20 +2,10 @@
  * Tupaia
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
+import keyBy from 'lodash.keyby';
 import { utcMoment } from '@tupaia/utils';
 
 import { SqlQuery } from './SqlQuery';
-
-const SUPPORTED_AGGREGATIONS = [
-  'FINAL_EACH_DAY',
-  'FINAL_EACH_WEEK',
-  'FINAL_EACH_MONTH',
-  'FINAL_EACH_YEAR',
-  'MOST_RECENT',
-];
-
-const COMMON_FIELDS = 'data_element_code, entity_code, entity_name';
-const ANSWER_SPECIFIC_FIELDS = 'date, event_id, value, answer_type';
 
 const getA1WhereClause = conditions => {
   let hasAnyCondition = false;
@@ -28,17 +18,20 @@ const getA1WhereClause = conditions => {
     clause = `${clause}
               ${hasAnyCondition ? 'AND' : 'WHERE'}`;
     switch (condition) {
-      case 'surveyCode':
-        clause = `${clause} survey_code = ?`;
+      case 'questionIds':
+        clause = `${clause} q.id IN ${SqlQuery.parameteriseValues(value)}`;
+        break;
+      case 'entityIds':
+        clause = `${clause} sr.entity_id IN ${SqlQuery.parameteriseValues(value)}`;
         break;
       case 'eventId':
-        clause = `${clause} event_id = ?`;
+        clause = `${clause} sr.id = ?`;
         break;
       case 'startDate':
-        clause = `${clause} date > ?`;
+        clause = `${clause} sr.submission_time > ?`;
         break;
       case 'endDate':
-        clause = `${clause} date < ?`;
+        clause = `${clause} sr.submission_time < ?`;
         break;
       default:
         throw new Error(`Unknown condition in fetch data where clause: ${condition}`);
@@ -49,116 +42,64 @@ const getA1WhereClause = conditions => {
   return clause;
 };
 
-const getA1GroupByClause = firstAggregationType => {
-  switch (firstAggregationType) {
-    case 'FINAL_EACH_DAY':
-      return `GROUP BY ${COMMON_FIELDS}, day_period`;
-    case 'FINAL_EACH_WEEK':
-      return `GROUP BY ${COMMON_FIELDS}, week_period`;
-    case 'FINAL_EACH_MONTH':
-      return `GROUP BY ${COMMON_FIELDS}, month_period`;
-    case 'FINAL_EACH_YEAR':
-      return `GROUP BY ${COMMON_FIELDS}, year_period`;
-    case 'MOST_RECENT':
-      return `GROUP BY ${COMMON_FIELDS}`;
-    default:
-      return '';
-  }
-};
-
-const getA2FinalWhereClause = firstAggregationType => {
-  switch (firstAggregationType) {
-    case 'FINAL_EACH_DAY':
-      return 'AND day_period = a1.day_period';
-    case 'FINAL_EACH_WEEK':
-      return 'AND week_period = a1.week_period';
-    case 'FINAL_EACH_MONTH':
-      return 'AND month_period = a1.month_period';
-    case 'FINAL_EACH_YEAR':
-      return 'AND year_period = a1.year_period';
-    default:
-      return '';
-  }
-};
-
-const getA1Select = firstAggregationType => {
-  switch (firstAggregationType) {
-    case 'FINAL_EACH_DAY':
-      return `SELECT ${COMMON_FIELDS}, day_period`;
-    case 'FINAL_EACH_WEEK':
-      return `SELECT ${COMMON_FIELDS}, week_period`;
-    case 'FINAL_EACH_MONTH':
-      return `SELECT ${COMMON_FIELDS}, month_period`;
-    case 'FINAL_EACH_YEAR':
-      return `SELECT ${COMMON_FIELDS}, year_period`;
-    case 'MOST_RECENT':
-      return `SELECT ${COMMON_FIELDS}`;
-    default:
-      return `SELECT ${COMMON_FIELDS}, ${ANSWER_SPECIFIC_FIELDS}`;
-  }
-};
-
-const getA2Join = firstAggregationType => {
-  return SUPPORTED_AGGREGATIONS.includes(firstAggregationType)
-    ? `CROSS JOIN LATERAL (
-      SELECT ${ANSWER_SPECIFIC_FIELDS}
-      FROM analytics
-      WHERE entity_code = a1.entity_code
-      AND data_element_code = a1.data_element_code
-      ${getA2FinalWhereClause(firstAggregationType)}
-      order by date desc
-      limit 1
-    ) as a2`
-    : '';
-};
-
-const generateBaseSqlQuery = ({
-  dataElementCodes,
-  organisationUnitCodes,
-  surveyCode,
-  eventId,
-  startDate,
-  endDate,
-  aggregations,
-}) => {
+export const fetchData = async (
+  database,
+  { dataElementCodes, organisationUnitCodes, eventId, startDate, endDate, aggregations },
+) => {
   const firstAggregationType = aggregations && aggregations[0] && aggregations[0].type;
+  if (firstAggregationType !== 'MOST_RECENT') {
+    throw new Error('Unsupported first aggregation type');
+  }
+  const questionResults = await new SqlQuery(`
+    SELECT id, code FROM question WHERE code IN ${SqlQuery.parameteriseValues(dataElementCodes)}
+  `);
+  const questionMetadata = keyBy(questionResults, 'id');
+  const questionIds = Object.keys(questionMetadata);
+
+  const entityResults = await new SqlQuery(`
+    SELECT id, code, name FROM entity WHERE code IN ${SqlQuery.parameteriseValues(
+      organisationUnitCodes,
+    )}
+  `);
+  const entityMetadata = keyBy(entityResults, 'id');
+  const entityIds = Object.keys(entityMetadata);
+
   const sqlQuery = new SqlQuery(
     `
-    SELECT 
-      date AS "date",
-      entity_code AS "entityCode",
-      entity_name AS "entityName",
-      data_element_code AS "dataElementCode",
-      event_id AS "eventId",
-      value AS "value",
-      answer_type AS "type"
+    SELECT
+      a2.submission_time AS "date",
+      a2.sr_id AS "eventId",
+      a2.text AS "value",
+      a2.type AS "type",
+      a2.question_id AS "question_id",
     FROM (
-      ${getA1Select(firstAggregationType)}
-      FROM analytics
-      INNER JOIN (
-        ${SqlQuery.parameteriseValues(dataElementCodes)}
-      ) data_element_codes(code) ON data_element_codes.code = analytics.data_element_code
-      INNER JOIN (
-        ${SqlQuery.parameteriseValues(organisationUnitCodes)}
-      ) entity_codes(code) ON entity_codes.code = analytics.entity_code
-        ${getA1WhereClause({ surveyCode, eventId, startDate, endDate })}
-        ${getA1GroupByClause(firstAggregationType)}
+      SELECT a.question_id, sr.entity_id
+      FROM answer a JOIN survey_response sr ON a.survey_response_id = sr.id
+        ${getA1WhereClause({ questionIds, entityIds, eventId, startDate, endDate })}
+      GROUP BY a.question_id, sr.entity_id;
     ) as a1
-    ${getA2Join(firstAggregationType)}
+    CROSS JOIN LATERAL (
+      SELECT sr.submission_time, sr.id as sr_id,
+      FROM answer a JOIN survey_response sr ON a.survey_response_id = sr.id
+      WHERE sr.entity_id = a1.entity_id
+      AND a.question_id = a1.question_id
+      order by date desc
+      limit 1
+    ) as a2
   `,
     [...dataElementCodes, ...organisationUnitCodes]
-      .concat(surveyCode ? [surveyCode] : [])
       .concat(eventId ? [eventId] : [])
       .concat(startDate ? [utcMoment(startDate).startOf('day').toISOString()] : [])
       .concat(endDate ? [utcMoment(endDate).startOf('day').toISOString()] : []),
   );
 
   sqlQuery.addOrderByClause('date');
+  const data = await sqlQuery.executeOnDatabase(database);
 
-  return sqlQuery;
+  return data.map(r => ({
+    ...r,
+    dataElementCode: questionMetadata[r.question_id].code,
+    entityCode: entityMetadata[r.entity_id].code,
+    entityName: entityMetadata[r.entity_id].name,
+  }));
 };
-
-export async function fetchData(database, options) {
-  const sqlQuery = generateBaseSqlQuery(options);
-  return sqlQuery.executeOnDatabase(database);
-}
