@@ -19,10 +19,10 @@ const getA1WhereClause = conditions => {
               ${hasAnyCondition ? 'AND' : 'WHERE'}`;
     switch (condition) {
       case 'questionIds':
-        clause = `${clause} q.id IN ${SqlQuery.parameteriseValues(value)}`;
+        clause = `${clause} a.question_id IN (${SqlQuery.parameteriseValues(value)})`;
         break;
       case 'entityIds':
-        clause = `${clause} sr.entity_id IN ${SqlQuery.parameteriseValues(value)}`;
+        clause = `${clause} sr.entity_id IN (${SqlQuery.parameteriseValues(value)})`;
         break;
       case 'eventId':
         clause = `${clause} sr.id = ?`;
@@ -46,21 +46,30 @@ export const fetchData = async (
   database,
   { dataElementCodes, organisationUnitCodes, eventId, startDate, endDate, aggregations },
 ) => {
+  const s = Date.now();
   const firstAggregationType = aggregations && aggregations[0] && aggregations[0].type;
   if (firstAggregationType !== 'MOST_RECENT') {
     throw new Error('Unsupported first aggregation type');
   }
-  const questionResults = await new SqlQuery(`
-    SELECT id, code FROM question WHERE code IN ${SqlQuery.parameteriseValues(dataElementCodes)}
-  `);
+  const questionResults = await new SqlQuery(
+    `
+    SELECT id, code FROM question WHERE code IN (${SqlQuery.parameteriseValues(dataElementCodes)})
+  `,
+    dataElementCodes,
+  ).executeOnDatabase(database);
+  console.log('query 1 took', (Date.now() - s) / 1000);
   const questionMetadata = keyBy(questionResults, 'id');
   const questionIds = Object.keys(questionMetadata);
 
-  const entityResults = await new SqlQuery(`
-    SELECT id, code, name FROM entity WHERE code IN ${SqlQuery.parameteriseValues(
+  const entityResults = await new SqlQuery(
+    `
+    SELECT id, code, name FROM entity WHERE code IN (${SqlQuery.parameteriseValues(
       organisationUnitCodes,
-    )}
-  `);
+    )})
+  `,
+    organisationUnitCodes,
+  ).executeOnDatabase(database);
+  console.log('query 2 took', (Date.now() - s) / 1000);
   const entityMetadata = keyBy(entityResults, 'id');
   const entityIds = Object.keys(entityMetadata);
 
@@ -71,31 +80,34 @@ export const fetchData = async (
       a2.sr_id AS "eventId",
       a2.text AS "value",
       a2.type AS "type",
-      a2.question_id AS "question_id",
+      a1.question_id AS "question_id",
+      a1.entity_id AS "entity_id"
     FROM (
       SELECT a.question_id, sr.entity_id
       FROM answer a JOIN survey_response sr ON a.survey_response_id = sr.id
         ${getA1WhereClause({ questionIds, entityIds, eventId, startDate, endDate })}
-      GROUP BY a.question_id, sr.entity_id;
+      GROUP BY a.question_id, sr.entity_id
     ) as a1
     CROSS JOIN LATERAL (
-      SELECT sr.submission_time, sr.id as sr_id,
+      SELECT sr.submission_time, sr.id as sr_id, a.text, a.type
       FROM answer a JOIN survey_response sr ON a.survey_response_id = sr.id
       WHERE sr.entity_id = a1.entity_id
       AND a.question_id = a1.question_id
-      order by date desc
+      order by submission_time desc
       limit 1
     ) as a2
   `,
-    [...dataElementCodes, ...organisationUnitCodes]
+    [...questionIds, ...entityIds]
       .concat(eventId ? [eventId] : [])
       .concat(startDate ? [utcMoment(startDate).startOf('day').toISOString()] : [])
       .concat(endDate ? [utcMoment(endDate).startOf('day').toISOString()] : []),
   );
 
-  sqlQuery.addOrderByClause('date');
-  const data = await sqlQuery.executeOnDatabase(database);
+  sqlQuery.addOrderByClause('submission_time');
+  console.log(sqlQuery.loggableQuery());
 
+  const data = await sqlQuery.executeOnDatabase(database);
+  console.log('query 3 took', (Date.now() - s) / 1000);
   return data.map(r => ({
     ...r,
     dataElementCode: questionMetadata[r.question_id].code,
