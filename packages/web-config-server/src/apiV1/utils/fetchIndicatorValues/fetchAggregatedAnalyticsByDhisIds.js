@@ -8,7 +8,7 @@
 // Will have to implement this properly with #tupaia-backlog/issues/2412
 // After that remove this file and anything related to it
 
-import { periodFromAnalytics } from '@tupaia/aggregator';
+import { periodFromAnalytics, aggregateAnalytics } from '@tupaia/aggregator';
 import { convertDateRangeToPeriodQueryString, getDefaultPeriod } from '../../../utils';
 import { translateElementInDhisAggregatedAnalytics } from './translateDhisAggregatedAnalytics';
 import { buildAnalyticsFromDhisAnalytics } from './buildAnalyticsFromDhisAggregatedAnalytics';
@@ -26,10 +26,9 @@ export const fetchAggregatedAnalyticsByDhisIds = async (
   });
   // Need to find all the data source org unit levels for the aggregated analytics endpoint,
   // otherwise all the data will be aggregated to the org unit
-  const dataSourceEntities = entityAggregation ? (await dhisApi.fetchDataSourceEntities(
-    query.organisationUnitCode,
-    entityAggregation,
-  )) : [(await models.entity.findOne({code: query.organisationUnitCode}))];
+  const dataSourceEntities = entityAggregation
+    ? await dhisApi.fetchDataSourceEntities(query.organisationUnitCode, entityAggregation)
+    : [await models.entity.findOne({ code: query.organisationUnitCode })];
   const entityCodes = dataSourceEntities.map(({ code }) => code);
   const mappings = await models.dataServiceEntity.find({ entity_code: entityCodes });
   const entityIdToCode = {};
@@ -53,7 +52,17 @@ export const fetchAggregatedAnalyticsByDhisIds = async (
     entityIdToCode[mapping.config.dhis_id] = entityCode;
   }
 
-  return getAggregatedAnalytics(query, dhisApi, dataElementIdToCode, entityIdToCode);
+  const data = await getAggregatedAnalytics(query, dhisApi, dataElementIdToCode, entityIdToCode);
+  console.log(data);
+  if (entityAggregation.aggregationEntityType)
+    return performEntityAggregation(data.results, entityAggregation);
+
+  return data;
+};
+
+const performEntityAggregation = async (analytics, entityAggregation) => {
+  const { aggregationType = 'REPLACE_ORG_UNIT_WITH_ORG_GROUP' } = entityAggregation;
+  return aggregateAnalytics(analytics, aggregationType, entityAggregation);
 };
 
 const getQueryInput = (query, dataElementIds, organisationUnitIds) => {
@@ -73,7 +82,14 @@ const getQueryInput = (query, dataElementIds, organisationUnitIds) => {
   };
 };
 
-const getAggregatedAnalytics = async (query, dhisApi, dataElementIdToCode, entityIdToCode) => {
+const getAggregatedAnalytics = async (
+  query,
+  dhisApi,
+  dataElementIdToCode,
+  entityIdToCode,
+  aggregationEntityType,
+  hierarchyId,
+) => {
   const queryInput = getQueryInput(
     query,
     Object.keys(dataElementIdToCode),

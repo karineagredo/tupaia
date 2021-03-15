@@ -55,6 +55,7 @@ class ValueForOrgGroupMeasureBuilder extends DataBuilder {
       organisationUnitCode: this.entity.code,
     });
 
+    console.log(results);
     const analytics = results.map(result => ({
       ...result,
       value: result.value === undefined ? '' : result.value.toString(),

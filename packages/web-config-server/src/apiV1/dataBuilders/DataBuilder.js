@@ -182,5 +182,5 @@ export class DataBuilder {
     return true;
   };
 
-  areEventResults = results => !!(results[0] && results[0].event);
+  areEventResults = results => !!(results && results[0] && results[0].event);
 }
