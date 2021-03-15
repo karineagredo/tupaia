@@ -26,21 +26,18 @@ export class SumPerOrgUnitBuilder extends DataPerOrgUnitBuilder {
     );
     if (allDataElementsAreDhisIndicators) {
       const { entityAggregation } = this.config;
+      const hierarchyId = await this.fetchEntityHierarchyId();
       const result = await fetchAggregatedAnalyticsByDhisIds(
         this.models,
         this.dhisApi,
         dataElementCodes,
         this.query,
         entityAggregation,
+        hierarchyId
       );
       console.log(result);
-      return fetchAggregatedAnalyticsByDhisIds(
-        this.models,
-        this.dhisApi,
-        dataElementCodes,
-        this.query,
-        entityAggregation,
-      );
+  
+      return result;
     }
     return this.fetchAnalytics(dataElementCodes, {
       organisationUnitCode: this.entity.code,

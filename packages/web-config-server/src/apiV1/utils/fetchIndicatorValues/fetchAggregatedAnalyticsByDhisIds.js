@@ -19,6 +19,7 @@ export const fetchAggregatedAnalyticsByDhisIds = async (
   dataElementCodes,
   query,
   entityAggregation,
+  hierarchyId,
 ) => {
   const dataElements = await models.dataSource.find({
     code: dataElementCodes,
@@ -54,15 +55,32 @@ export const fetchAggregatedAnalyticsByDhisIds = async (
 
   const data = await getAggregatedAnalytics(query, dhisApi, dataElementIdToCode, entityIdToCode);
   console.log(data);
-  if (entityAggregation.aggregationEntityType)
-    return performEntityAggregation(data.results, entityAggregation);
+  if (entityAggregation.aggregationEntityType) {
+    const newAnalytics = await performEntityAggregation(models, data.results, entityAggregation, hierarchyId);
+    return {
+      ...data,
+      results: newAnalytics,
+    }
+  }
 
   return data;
 };
 
-const performEntityAggregation = async (analytics, entityAggregation) => {
-  const { aggregationType = 'REPLACE_ORG_UNIT_WITH_ORG_GROUP' } = entityAggregation;
-  return aggregateAnalytics(analytics, aggregationType, entityAggregation);
+const performEntityAggregation = async (models, analytics, entityAggregation, hierarchyId) => {
+  const { aggregationType = 'REPLACE_ORG_UNIT_WITH_ORG_GROUP', aggregationEntityType } = entityAggregation;
+  console.log('aggregationEntityType', aggregationEntityType);
+  console.log('hierarchyId', hierarchyId);
+  const dataSourceEntityCodes = [...new Set(analytics.map(data => data.organisationUnit))]
+  const entityToAncestorMap = await models.entity.fetchAncestorDetailsByDescendantCode(
+    dataSourceEntityCodes,
+    hierarchyId,
+    aggregationEntityType,
+  );
+  const aggregationConfig = {
+    ...entityAggregation,
+    orgUnitMap: entityToAncestorMap,
+  }
+  return aggregateAnalytics(analytics, aggregationType, aggregationConfig);
 };
 
 const getQueryInput = (query, dataElementIds, organisationUnitIds) => {
@@ -87,8 +105,6 @@ const getAggregatedAnalytics = async (
   dhisApi,
   dataElementIdToCode,
   entityIdToCode,
-  aggregationEntityType,
-  hierarchyId,
 ) => {
   const queryInput = getQueryInput(
     query,
