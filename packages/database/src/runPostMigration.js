@@ -90,7 +90,7 @@ export const runPostMigration = async driver => {
   const start = Date.now();
   await driver.runSql(`SELECT mv$refreshMaterializedView('analytics', 'public', true);`);
   const end = Date.now();
-  console.log(`Analytics refresh took: ${end - start}ms`);
+  console.log(`Analytics refresh took: ${(end - start) / 1000}s`);
 
   driver.close(err => {
     if (tablesWithoutNotifier.length > 0) {
