@@ -27,18 +27,54 @@ const AGGREGATIONS = {
     periodColumns: [],
     useA2Join: true,
   },
+  SUM_PER_ORG_GROUP: {
+    periodColumns: [],
+    useA2Join: false,
+    entityAggregation: true,
+    sum: true,
+  },
   DEFAULT: {
     useA2Join: false,
   },
 };
 
-const COMMON_FIELDS = ['data_element_code', 'entity_code']; // Fields which may be grouped by for aggregation purposes
+const getCommonFields = firstAggregation => [
+  'data_element_code',
+  getEntityCodeField(firstAggregation),
+]; // Fields which may be grouped by for aggregation purposes
 const ANSWER_SPECIFIC_FIELDS = ['entity_name', 'date', 'event_id', 'value', 'type']; // Fields unique to each answer
 
+const getEntityCodeField = firstAggregation =>
+  firstAggregation.entityAggregation ? 'aggregation_entity_code' : 'entity_code';
+
+const entityCodesAndRelations = (firstAggregation, entityCodes, paramsArray) =>
+  `entity_codes_and_relations (code${
+    firstAggregation.entityAggregation ? ', aggregation_entity_code' : ''
+  }) AS (${
+    firstAggregation.entityAggregation
+      ? SqlQuery.parameteriseValues(
+          Object.entries(firstAggregation.config.orgUnitMap).map(([key, value]) => [
+            key,
+            value.code,
+          ]),
+          paramsArray,
+        )
+      : SqlQuery.parameteriseValues(
+          entityCodes.map(entityCode => [entityCode]),
+          paramsArray,
+        )
+  })`;
+
 const getA1Select = firstAggregation => {
-  return `SELECT ${COMMON_FIELDS.concat(
-    firstAggregation.useA2Join ? firstAggregation.periodColumns : ANSWER_SPECIFIC_FIELDS,
-  ).join(', ')}`;
+  return `SELECT ${getCommonFields(firstAggregation)
+    .concat(
+      firstAggregation.useA2Join
+        ? firstAggregation.periodColumns
+        : firstAggregation.sum
+        ? ['SUM(value::NUMERIC)::text as value', 'MAX(date) as date', 'MAX(type) as type']
+        : ANSWER_SPECIFIC_FIELDS,
+    )
+    .join(', ')}`;
 };
 
 const getA1WhereClause = (conditions, paramsArray) => {
@@ -75,15 +111,17 @@ const getA1WhereClause = (conditions, paramsArray) => {
 };
 
 const getA1GroupByClause = firstAggregation => {
-  return firstAggregation.useA2Join
-    ? `GROUP BY ${COMMON_FIELDS.concat(firstAggregation.periodColumns).join(', ')}`
+  return firstAggregation.useA2Join || firstAggregation.sum
+    ? `GROUP BY ${getCommonFields(firstAggregation)
+        .concat(firstAggregation.periodColumns)
+        .join(', ')}`
     : '';
 };
 
 const getA2WhereClause = (firstAggregation, startDate, endDate, paramsArray) => {
-  const whereClauses = COMMON_FIELDS.concat(firstAggregation.periodColumns).map(
-    field => `${field} = a1.${field}`,
-  );
+  const whereClauses = getCommonFields(firstAggregation)
+    .concat(firstAggregation.periodColumns)
+    .map(field => `${field} = a1.${field}`);
   if (startDate) {
     whereClauses.push('date >= ?');
     paramsArray.push(startDate);
@@ -98,8 +136,13 @@ const getA2WhereClause = (firstAggregation, startDate, endDate, paramsArray) => 
 const getA2Join = (firstAggregation, startDate, endDate, paramsArray) => {
   return firstAggregation.useA2Join
     ? `CROSS JOIN LATERAL (
-      SELECT ${ANSWER_SPECIFIC_FIELDS}
+      SELECT ${
+        firstAggregation.sum
+          ? ANSWER_SPECIFIC_FIELDS.filter(field => field !== 'value')
+          : ANSWER_SPECIFIC_FIELDS
+      }
       FROM analytics
+      INNER JOIN entity_codes_and_relations ON entity_codes_and_relations.code = analytics.entity_code
       ${getA2WhereClause(firstAggregation, startDate, endDate, paramsArray)}
       order by date desc
       limit 1
@@ -123,26 +166,28 @@ const generateBaseSqlQuery = ({
     ? stripTimezoneFromDate(utcMoment(endDate).endOf('day').toISOString())
     : undefined;
   const firstAggregation = AGGREGATIONS[aggregations?.[0]?.type] || AGGREGATIONS.DEFAULT;
+  firstAggregation.config = aggregations?.[0]?.config;
   const paramsArray = [];
   const sqlQuery = new SqlQuery(
     `
+    WITH ${entityCodesAndRelations(firstAggregation, organisationUnitCodes, paramsArray)}
+
     SELECT
       date AS "date",
-      entity_code AS "entityCode",
-      entity_name AS "entityName",
+      ${getEntityCodeField(firstAggregation)} AS "entityCode",
       data_element_code AS "dataElementCode",
-      event_id AS "eventId",
       value AS "value",
       type AS "type"
     FROM (
       ${getA1Select(firstAggregation)}
       FROM analytics
+      INNER JOIN entity_codes_and_relations ON entity_codes_and_relations.code = analytics.entity_code
       INNER JOIN (
-        ${SqlQuery.parameteriseValues(dataElementCodes, paramsArray)}
+        ${SqlQuery.parameteriseValues(
+          dataElementCodes.map(dataElementCode => [dataElementCode]),
+          paramsArray,
+        )}
       ) data_element_codes(code) ON data_element_codes.code = analytics.data_element_code
-      INNER JOIN (
-        ${SqlQuery.parameteriseValues(organisationUnitCodes, paramsArray)}
-      ) entity_codes(code) ON entity_codes.code = analytics.entity_code
         ${getA1WhereClause(
           { dataGroupCode, eventId, startDate: adjustedStartDate, endDate: adjustedEndDate },
           paramsArray,
@@ -155,6 +200,8 @@ const generateBaseSqlQuery = ({
   );
 
   sqlQuery.addOrderByClause('date');
+
+  console.log(sqlQuery.loggableQuery());
 
   return sqlQuery;
 };

@@ -7,8 +7,8 @@ export class SqlQuery {
   static parameteriseArray = arr => `(${arr.map(() => '?').join(',')})`;
 
   static parameteriseValues = (values, paramsArray) => {
-    if (paramsArray) paramsArray.push(...values);
-    return `VALUES (${values.map(() => `?`).join('), (')})`;
+    if (paramsArray) paramsArray.push(...values.flat());
+    return `VALUES (${values.map(value => value.map(() => `?`).join(',')).join('), (')})`;
   };
 
   constructor(baseQuery, baseParameters = []) {
