@@ -1,5 +1,6 @@
 - type: parallel
   name: validate-and-test
+  exclude: -e2e$
   steps:
     - type: parallel
       name: validate
@@ -71,6 +72,7 @@
     - name: pull latest and install dependencies
       command: './packages/devops/scripts/ci/pullLatest.sh'
 - type: serial
+  exclude: -e2e$
   name: deploy-all
   service: deployment
   steps:
