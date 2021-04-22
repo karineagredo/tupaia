@@ -15,7 +15,7 @@ import {
   toArray,
 } from '@tupaia/utils';
 import datesByGranularity from '../../config/datesByGranularity.json';
-import orgUnitMap from '../../config/orgUnitMap.json';
+import orgUnitMap from '../../config/orgUnitMap';
 import { convertDateRangeToUrlPeriodString } from '../../../src/historyNavigation/utils';
 
 const WARNING_TYPES = {
