@@ -7,8 +7,24 @@ import reportUrls from '../config/dashboardReports.json';
 import { SNAPSHOTS } from '../constants';
 import { preserveUserSession } from '../support';
 
-const checkResponseHasData = response =>
-  response?.body?.value !== undefined || response?.body?.data?.length > 0;
+const hasKeyOtherThan = (object, excludedKeys) =>
+  Object.keys(object).find(key => !excludedKeys.includes(key));
+
+const checkMatrixResponseHasData = response => {
+  const { rows = [] } = response.body;
+  // These keys are related to the structure of the matrix, not to its cell values
+  const nonValueKeys = ['categoryId', 'dataElement'];
+  return rows.length > 0 && rows.find(row => hasKeyOtherThan(row, nonValueKeys));
+};
+
+const checkResponseHasData = response => {
+  const { body } = response;
+  const hasSingleValue = body?.value !== undefined;
+  const hasChartData = body?.data?.length > 0;
+
+  return hasSingleValue || hasChartData;
+  // return hasSingleValue || hasChartData || checkMatrixResponseHasData(response);
+};
 
 const urlToRouteRegex = url => {
   const queryParams = url.split('?').slice(1).join('');

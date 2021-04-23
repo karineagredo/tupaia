@@ -1,1 +1,7 @@
-[]
+[
+  "/covid_samoa/WS/COVID-19%20Samoa?report=Samoa_Covid_Age_Demo_Per_Flight",
+  "/covid_samoa/WS/COVID-19%20Samoa?report=Samoa_Covid_Clearance_Documents_Per_Flight",
+  "/covid_samoa/WS/COVID-19%20Samoa?report=Samoa_Covid_Demo_Health_Cons_Per_Flight",
+  "/covid_samoa/WS/COVID-19%20Samoa?report=Samoa_Covid_Demo_Indiv_Sex_Per_Flight",
+  "/covid_samoa/WS/COVID-19%20Samoa?report=Samoa_Covid_Quarantine_Site_By_Flight"
+]
