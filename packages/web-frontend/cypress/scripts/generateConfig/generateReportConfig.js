@@ -178,7 +178,11 @@ const getUrlsForReports = async (db, reports, reportIdToGroups) => {
 };
 
 const getReportIdToGroups = async db => {
-  const dashboardGroups = await db.executeSql(`SELECT * from "dashboardGroup"`);
+  // Remove 'not TL' check after https://github.com/beyondessential/tupaia-backlog/issues/2456
+  // is implemented
+  const dashboardGroups = await db.executeSql(
+    `SELECT * from "dashboardGroup" WHERE "organisationUnitCode" <> 'TL'`,
+  );
 
   const reportIdToGroups = {};
   dashboardGroups.forEach(dashboardGroup => {

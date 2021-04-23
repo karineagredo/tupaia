@@ -150,9 +150,6 @@ export default {
     district: 'TK_Atafu', // Atafu
     facility: 'TK_Ataf', // Lomaloma Hospital
   },
-  TL: {
-    country: 'TL', // Timor-Leste
-  },
   TO: {
     country: 'TO', // Tonga
     district: 'TO_Eua', // 'Eua
