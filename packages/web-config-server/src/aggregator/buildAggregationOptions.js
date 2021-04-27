@@ -6,15 +6,10 @@ import { Aggregator } from '@tupaia/aggregator';
 
 const ENTITY_AGGREGATION_ORDER_AFTER = 'AFTER';
 const DEFAULT_ENTITY_AGGREGATION_TYPE = Aggregator.aggregationTypes.REPLACE_ORG_UNIT_WITH_ORG_GROUP;
+const DATA_SOURCE_ONLY_AGGREGATION_TYPE = Aggregator.aggregationTypes.RAW;
 const DEFAULT_ENTITY_AGGREGATION_ORDER = ENTITY_AGGREGATION_ORDER_AFTER;
 
-export const buildAggregationOptions = async (
-  models,
-  initialAggregationOptions,
-  dataSourceEntities = [],
-  entityAggregationOptions,
-  hierarchyId,
-) => {
+export const buildAggregationOptions = (initialAggregationOptions, entityAggregationOptions) => {
   const {
     aggregations,
     aggregationType,
@@ -23,6 +18,7 @@ export const buildAggregationOptions = async (
   } = initialAggregationOptions;
   const {
     aggregationEntityType,
+    dataSourceEntityType,
     aggregationType: entityAggregationType,
     aggregationConfig: entityAggregationConfig,
     aggregationOrder: entityAggregationOrder = DEFAULT_ENTITY_AGGREGATION_ORDER,
@@ -31,20 +27,18 @@ export const buildAggregationOptions = async (
   // Note aggregationType and aggregationConfig might be undefined
   const inputAggregations = aggregations || [{ type: aggregationType, config: aggregationConfig }];
 
-  if (!shouldAggregateEntities(dataSourceEntities, aggregationEntityType, entityAggregationType)) {
+  if (!(aggregationEntityType || dataSourceEntityType)) {
     return {
       aggregations: inputAggregations,
       ...restOfOptions,
     };
   }
 
-  const entityAggregation = await fetchEntityAggregationConfig(
-    models,
-    dataSourceEntities,
+  const entityAggregation = fetchEntityAggregationConfig(
     aggregationEntityType,
+    dataSourceEntityType,
     entityAggregationType,
     entityAggregationConfig,
-    hierarchyId,
   );
 
   return {
@@ -56,31 +50,14 @@ export const buildAggregationOptions = async (
   };
 };
 
-const shouldAggregateEntities = (
-  dataSourceEntities,
+const fetchEntityAggregationConfig = (
   aggregationEntityType,
-  entityAggregationType,
-) =>
-  aggregationEntityType &&
-  !(dataSourceEntities.length === 0) &&
-  !dataSourceEntities.every(({ type }) => type === aggregationEntityType) &&
-  !(entityAggregationType === Aggregator.aggregationTypes.RAW);
-
-const fetchEntityAggregationConfig = async (
-  models,
-  dataSourceEntities,
-  aggregationEntityType,
+  dataSourceEntityType,
   entityAggregationType = DEFAULT_ENTITY_AGGREGATION_TYPE,
   entityAggregationConfig,
-  hierarchyId,
 ) => {
-  const entityToAncestorMap = await models.entity.fetchAncestorDetailsByDescendantCode(
-    dataSourceEntities.map(e => e.code),
-    hierarchyId,
-    aggregationEntityType,
-  );
   return {
-    type: entityAggregationType,
-    config: { ...entityAggregationConfig, orgUnitMap: entityToAncestorMap },
+    type: aggregationEntityType ? entityAggregationType : DATA_SOURCE_ONLY_AGGREGATION_TYPE,
+    config: { ...entityAggregationConfig, aggregationEntityType, dataSourceEntityType },
   };
 };

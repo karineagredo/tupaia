@@ -15,41 +15,44 @@ export class Aggregator extends BaseAggregator {
     replacementValues,
     initialAggregationOptions = {},
   ) {
-    const queryBuilder = new QueryBuilder(originalQuery, replacementValues, this.routeHandler);
-    const dataSourceEntities = await queryBuilder.getDataSourceEntities();
-    const hierarchyId = await this.routeHandler.fetchHierarchyId();
+    const queryBuilder = new QueryBuilder(originalQuery, replacementValues);
+    const hierarchyName = (
+      await this.models.entityHierarchy.findById(await this.routeHandler.fetchHierarchyId())
+    ).name;
 
-    const fetchOptions = await queryBuilder.build(dataSourceEntities);
+    const fetchOptions = queryBuilder.build();
 
-    const entityAggregationOptions = queryBuilder.getEntityAggregationOptions();
-    const aggregationOptions = await buildAggregationOptions(
-      this.models,
+    // TODO: Add support for 'includeSiblingData'
+    const aggregationOptions = buildAggregationOptions(
       initialAggregationOptions,
-      dataSourceEntities,
-      entityAggregationOptions,
-      hierarchyId,
+      queryBuilder.getEntityAggregationOptions(),
     );
 
-    return super.fetchAnalytics(dataElementCodes, { ...fetchOptions, useDeprecatedApi: false }, aggregationOptions);
+    return super.fetchAnalytics(
+      dataElementCodes,
+      { ...fetchOptions, hierarchy: hierarchyName, useDeprecatedApi: false },
+      aggregationOptions,
+    );
   }
 
   async fetchEvents(programCode, originalQuery, replacementValues) {
-    const queryBuilder = new QueryBuilder(originalQuery, replacementValues, this.routeHandler);
-    const dataSourceEntities = await queryBuilder.getDataSourceEntities();
-    const hierarchyId = await this.routeHandler.fetchHierarchyId();
+    const queryBuilder = new QueryBuilder(originalQuery, replacementValues);
+    const hierarchyName = (
+      await this.models.entityHierarchy.findById(await this.routeHandler.fetchHierarchyId())
+    ).name;
 
-    queryBuilder.replaceOrgUnitCodes(dataSourceEntities);
+    queryBuilder.replaceOrgUnitCodes();
     queryBuilder.makeEventReplacements();
 
-    const entityAggregationOptions = queryBuilder.getEntityAggregationOptions();
-    const aggregationOptions = await buildAggregationOptions(
-      this.models,
+    const aggregationOptions = buildAggregationOptions(
       {}, // No input aggregation for events (yet)
-      dataSourceEntities,
-      entityAggregationOptions,
-      hierarchyId,
+      queryBuilder.getEntityAggregationOptions(),
     );
 
-    return super.fetchEvents(programCode, queryBuilder.getQuery(), aggregationOptions);
+    return super.fetchEvents(
+      programCode,
+      { ...queryBuilder.getQuery(), hierarchy: hierarchyName },
+      aggregationOptions,
+    );
   }
 }

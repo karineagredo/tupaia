@@ -6,10 +6,9 @@ import { convertDateRangeToPeriodQueryString } from '@tupaia/utils';
 import { getDefaultPeriod } from '/utils';
 
 export class QueryBuilder {
-  constructor(originalQuery, replacementValues = {}, routeHandler) {
+  constructor(originalQuery, replacementValues = {}) {
     this.query = { ...originalQuery };
     this.replacementValues = replacementValues;
-    this.routeHandler = routeHandler;
   }
 
   getQueryParameter(parameterKey) {
@@ -17,9 +16,9 @@ export class QueryBuilder {
   }
 
   // Ensure the standard dimensions of period, start/end date, and organisation unit are set up
-  async build(dataSourceEntities) {
+  build() {
     this.makePeriodReplacements();
-    this.replaceOrgUnitCodes(dataSourceEntities);
+    this.replaceOrgUnitCodes();
     this.makeEventReplacements();
     return this.query;
   }
@@ -33,22 +32,11 @@ export class QueryBuilder {
     }
   }
 
-  replaceOrgUnitCodes(dataSourceEntities) {
-    this.query.organisationUnitCodes = dataSourceEntities.map(e => e.code);
+  replaceOrgUnitCodes() {
+    this.query.organisationUnitCodes = this.query.organisationUnitCodes || [
+      this.getQueryParameter('organisationUnitCode'),
+    ];
     delete this.query.organisationUnitCode;
-  }
-
-  async getDataSourceEntities() {
-    const organisationUnitCode = this.getQueryParameter('organisationUnitCode');
-    const entityAggregationConfig = this.getQueryParameter('entityAggregation') || {};
-    const dataSourceEntities = await this.routeHandler.fetchDataSourceEntities(
-      organisationUnitCode,
-      {
-        ...entityAggregationConfig,
-        dataSourceEntityFilter: this.getQueryParameter('dataSourceEntityFilter'),
-      },
-    );
-    return dataSourceEntities;
   }
 
   getEntityAggregationOptions() {
