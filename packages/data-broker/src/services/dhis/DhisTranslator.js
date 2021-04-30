@@ -9,11 +9,13 @@ import { translateElementKeysInEventAnalytics } from '@tupaia/dhis-api';
 import { reduceToDictionary } from '@tupaia/utils';
 import { InboundAnalyticsTranslator } from './InboundAnalyticsTranslator';
 import { parseValueForDhis } from './parseValueForDhis';
+import { EntityConnection } from './connections';
 
 export class DhisTranslator {
-  constructor(models) {
+  constructor(models, context) {
     this.models = models;
     this.inboundAnalyticsTranslator = new InboundAnalyticsTranslator();
+    this.entityConnection = new EntityConnection(context.session);
     this.dataElementsByCode = {};
   }
 
@@ -76,6 +78,10 @@ export class DhisTranslator {
       }),
     );
     return keyBy(dataElementsWithTranslatedOptions, 'code');
+  };
+
+  translateOutboundOrganisationUnitCodes = async (hierarchy, organisationUnitCodes) => {
+    return this.entityConnection.getSupportedEntities(hierarchy, organisationUnitCodes);
   };
 
   /**

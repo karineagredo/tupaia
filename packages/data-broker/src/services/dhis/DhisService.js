@@ -11,7 +11,7 @@ const DEFAULT_DATA_SERVICE = { isDataRegional: true };
 const DEFAULT_DATA_SERVICES = [DEFAULT_DATA_SERVICE];
 
 export class DhisService extends Service {
-  constructor(models) {
+  constructor(models, dataBroker) {
     super(models);
 
     this.translator = new DhisTranslator(this.models);
@@ -29,6 +29,7 @@ export class DhisService extends Service {
     this.deleters = this.getDeleters();
     this.pullers = this.getPullers();
     this.metadataPullers = this.getMetadataPullers();
+    this.translator = new DhisTranslator(this.models, dataBroker.context);
   }
 
   getPushers() {
@@ -120,18 +121,24 @@ export class DhisService extends Service {
   deleteEvent = async (api, data) => api.deleteEvent(data.dhisReference);
 
   async pull(dataSources, type, options = {}) {
-    const {
-      organisationUnitCode,
+    const { hierarchy, organisationUnitCodes, dataServices = DEFAULT_DATA_SERVICES } = options;
+
+    const supportedOrganisationUnitCodes = await this.translator.translateOutboundOrganisationUnitCodes(
+      hierarchy,
       organisationUnitCodes,
-      dataServices = DEFAULT_DATA_SERVICES,
-    } = options;
-    const entityCodes = organisationUnitCodes || [organisationUnitCode];
+    );
     const pullData = this.pullers[type];
     const apis = dataServices.map(({ isDataRegional }) =>
-      getDhisApiInstance({ entityCodes, isDataRegional }, this.models),
+      getDhisApiInstance(
+        { entityCodes: supportedOrganisationUnitCodes, isDataRegional },
+        this.models,
+      ),
     );
 
-    return pullData(apis, dataSources, options);
+    return pullData(apis, dataSources, {
+      ...options,
+      organisationUnitCodes: supportedOrganisationUnitCodes,
+    });
   }
 
   async pullMetadata(dataSources, type, options) {

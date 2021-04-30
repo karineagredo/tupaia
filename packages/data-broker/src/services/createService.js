@@ -14,7 +14,7 @@ import { WeatherService } from './weather/WeatherService';
 export const createService = (models, type, dataBroker) => {
   switch (type) {
     case 'dhis':
-      return new DhisService(models);
+      return new DhisService(models, dataBroker);
     case 'tupaia':
       return new TupaiaService(models, new TupaiaDataApi(models.database));
     case 'indicator':

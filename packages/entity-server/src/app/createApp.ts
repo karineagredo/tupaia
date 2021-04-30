@@ -9,6 +9,8 @@ import {
   SingleEntityRequest,
   MultiEntityRequest,
   SingleEntityRoute,
+  MultiEntityRouteRequest,
+  MultiEntityRoute,
   DescendantsRequest,
   EntityDescendantsRoute,
   MultiEntityDescendantsRequest,
@@ -32,8 +34,10 @@ export function createApp() {
   return new MicroServiceApiBuilder(new TupaiaDatabase())
     .useBasicBearerAuth('entity-server')
     .use<SingleEntityRequest | MultiEntityRequest>('hierarchy/:hierarchyName', attachCommonContext)
+    .use<MultiEntityRequest>('hierarchy/:hierarchyName$', attachMultiEntityContext)
     .use<MultiEntityRequest>('hierarchy/:hierarchyName/descendants', attachMultiEntityContext)
     .use<MultiEntityRequest>('hierarchy/:hierarchyName/relations', attachMultiEntityContext)
+    .get<MultiEntityRouteRequest>('hierarchy/:hierarchyName$', handleWith(MultiEntityRoute))
     .get<MultiEntityDescendantsRequest>(
       'hierarchy/:hierarchyName/descendants',
       handleWith(MultiEntityDescendantsRoute),
