@@ -7,8 +7,9 @@ import { EntityFilter } from '../../../models';
 import {
   SingleEntityRequestParams,
   MultiEntityRequestParams,
-  RequestBody,
-  SingleEntityRequestQuery,
+  SingleEntityRequestBody,
+  MultiEntityRequestBody,
+  EntityRequestQuery,
   SingleEntityContext,
   MultiEntityContext,
   FlattableEntityFields,
@@ -16,11 +17,11 @@ import {
   EntityResponse,
 } from '../types';
 
-export type Prefix<T, P extends string> = {
-  [field in keyof T & string as `${P}_${field}`]: T[field];
+export type Prefix<T, Pref extends string> = {
+  [field in keyof T & string as `${Pref}_${field}`]: T[field];
 };
 
-export type RelationsSubQuery = Omit<SingleEntityRequestQuery, 'fields'>;
+export type RelationsSubQuery = Omit<EntityRequestQuery, 'fields'>;
 export type RelationsQuery = RelationsSubQuery & {
   groupBy?: 'ancestor' | 'descendant';
 } & Partial<Prefix<RelationsSubQuery, 'ancestor'>> &
@@ -48,7 +49,12 @@ export type RelationsContext = Omit<SingleEntityContext, 'fields'> & {
 };
 
 export interface RelationsRequest
-  extends Request<SingleEntityRequestParams, RelationsResponseBody, RequestBody, RelationsQuery> {
+  extends Request<
+    SingleEntityRequestParams,
+    RelationsResponseBody,
+    SingleEntityRequestBody,
+    RelationsQuery
+  > {
   ctx: RelationsContext;
 }
 
@@ -56,8 +62,8 @@ export interface MultiEntityRelationsRequest
   extends Request<
     MultiEntityRequestParams,
     RelationsResponseBody,
-    RequestBody,
-    RelationsQuery & { entities?: string }
+    MultiEntityRequestBody,
+    RelationsQuery
   > {
   ctx: Omit<MultiEntityContext, 'fields'> & {
     ancestor: AncestorSubContext;

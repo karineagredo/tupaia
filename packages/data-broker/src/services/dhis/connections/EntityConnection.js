@@ -18,10 +18,15 @@ export class EntityConnection extends ApiConnection {
   }
 
   async getSupportedEntities(hierarchyName, entityCodes) {
-    const requestedEntities = await this.get(`hierarchy/${hierarchyName}`, {
-      entities: entityCodes.join(','),
-      fields: ['code', 'type'].join(','),
-    });
+    const requestedEntities = await this.post(
+      `hierarchy/${hierarchyName}`,
+      {
+        fields: ['code', 'type'].join(','),
+      },
+      {
+        entities: entityCodes,
+      },
+    );
 
     const unsupportedEntities = requestedEntities.filter(
       entity => entity.type === UNSUPPORTED_ENTITY_TYPE,
@@ -32,11 +37,16 @@ export class EntityConnection extends ApiConnection {
     }
 
     // Get countries within project
-    const replacementEntities = await this.get(`hierarchy/${hierarchyName}/descendants`, {
-      entities: unsupportedEntities.map(entity => entity.code).join(','),
-      field: 'code',
-      filter: `type:country`,
-    });
+    const replacementEntities = await this.post(
+      `hierarchy/${hierarchyName}/descendants`,
+      {
+        field: 'code',
+        filter: `type:country`,
+      },
+      {
+        entities: unsupportedEntities.map(entity => entity.code),
+      },
+    );
 
     return requestedEntities
       .filter(entity => !unsupportedEntities.includes(entity))

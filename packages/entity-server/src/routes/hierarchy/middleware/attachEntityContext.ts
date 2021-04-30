@@ -76,13 +76,11 @@ export const attachMultiEntityContext = async (
   next: NextFunction,
 ) => {
   try {
-    const { entities: queryEntities } = req.query;
-    if (!queryEntities) {
-      throw new Error('Must provide entities=code1,code2,.. url parameter');
+    const { entities } = req.body;
+    if (!entities) {
+      throw new Error('Must provide "entities" list in request body');
     }
-    const entityCodes = queryEntities.split(',');
-
-    const context = await validateEntitiesAndBuildContext(req, entityCodes);
+    const context = await validateEntitiesAndBuildContext(req, entities);
 
     req.ctx.entities = context.entities;
     req.ctx.allowedCountries = context.allowedCountries;

@@ -37,13 +37,13 @@ export function createApp() {
     .use<MultiEntityRequest>('hierarchy/:hierarchyName$', attachMultiEntityContext)
     .use<MultiEntityRequest>('hierarchy/:hierarchyName/descendants', attachMultiEntityContext)
     .use<MultiEntityRequest>('hierarchy/:hierarchyName/relations', attachMultiEntityContext)
-    .get<MultiEntityRouteRequest>('hierarchy/:hierarchyName$', handleWith(MultiEntityRoute))
-    .get<MultiEntityDescendantsRequest>(
+    .post<MultiEntityRouteRequest>('hierarchy/:hierarchyName$', handleWith(MultiEntityRoute))
+    .post<MultiEntityDescendantsRequest>(
       'hierarchy/:hierarchyName/descendants',
       handleWith(MultiEntityDescendantsRoute),
     )
     .use<MultiEntityRelationsRequest>('hierarchy/:hierarchyName/relations', attachRelationsContext)
-    .get<MultiEntityRelationsRequest>(
+    .post<MultiEntityRelationsRequest>(
       'hierarchy/:hierarchyName/relations',
       handleWith(MultiEntityRelationsRoute),
     )

@@ -17,16 +17,16 @@ export interface MultiEntityRequestParams {
   hierarchyName: string;
 }
 
-export type RequestBody = Record<string, unknown>;
+export type SingleEntityRequestBody = Record<string, unknown>;
 
-export interface SingleEntityRequestQuery {
+export type MultiEntityRequestBody = {
+  entities?: string[];
+};
+
+export interface EntityRequestQuery {
   fields?: string;
   field?: string;
   filter?: string;
-}
-
-export interface MultiEntityRequestQuery extends SingleEntityRequestQuery {
-  entities?: string;
 }
 
 export type ExtendedFieldFunctions = Readonly<
@@ -75,8 +75,8 @@ export interface MultiEntityContext extends CommonContext {
 export interface SingleEntityRequest<
   P = SingleEntityRequestParams,
   ResBody = EntityResponse,
-  ReqBody = RequestBody,
-  ReqQuery = SingleEntityRequestQuery
+  ReqBody = SingleEntityRequestBody,
+  ReqQuery = EntityRequestQuery
 > extends Request<P, ResBody, ReqBody, ReqQuery> {
   ctx: SingleEntityContext;
 }
@@ -84,8 +84,8 @@ export interface SingleEntityRequest<
 export interface MultiEntityRequest<
   P = MultiEntityRequestParams,
   ResBody = EntityResponse,
-  ReqBody = RequestBody,
-  ReqQuery = MultiEntityRequestQuery
+  ReqBody = MultiEntityRequestBody,
+  ReqQuery = EntityRequestQuery
 > extends Request<P, ResBody, ReqBody, ReqQuery> {
   ctx: MultiEntityContext;
 }

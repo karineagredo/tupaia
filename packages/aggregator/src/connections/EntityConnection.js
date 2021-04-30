@@ -21,11 +21,16 @@ export class EntityConnection extends ApiConnection {
     dataSourceEntityType,
     dataSourceEntityFilter = {}, // TODO: Add support for dataSourceEntityFilter https://github.com/beyondessential/tupaia-backlog/issues/2660
   ) {
-    return this.get(`hierarchy/${hierarchyName}/descendants`, {
-      entities: entityCodes.join(','),
-      descendant_filter: `type:${dataSourceEntityType}`,
-      field: 'code',
-    });
+    return this.post(
+      `hierarchy/${hierarchyName}/descendants`,
+      {
+        descendant_filter: `type:${dataSourceEntityType}`,
+        field: 'code',
+      },
+      {
+        entities: entityCodes,
+      },
+    );
   }
 
   async getDataSourceEntitiesAndRelations(
@@ -36,7 +41,6 @@ export class EntityConnection extends ApiConnection {
     dataSourceEntityFilter = {}, // TODO: Add support for dataSourceEntityFilter https://github.com/beyondessential/tupaia-backlog/issues/2660
   ) {
     const query = {
-      entities: entityCodes.join(','),
       descendant_filter: `type:${dataSourceEntityType}`,
       field: 'code',
       groupBy: 'descendant',
@@ -47,7 +51,9 @@ export class EntityConnection extends ApiConnection {
       query.ancestor_filter = `type:${aggregationEntityType}`;
     }
 
-    const response = await this.get(`hierarchy/${hierarchyName}/relations`, query);
+    const response = await this.post(`hierarchy/${hierarchyName}/relations`, query, {
+      entities: entityCodes,
+    });
 
     const formattedRelations = {};
     Object.entries(response).forEach(([descendant, ancestor]) => {
