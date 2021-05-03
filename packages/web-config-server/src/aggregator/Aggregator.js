@@ -22,7 +22,6 @@ export class Aggregator extends BaseAggregator {
 
     const fetchOptions = queryBuilder.build();
 
-    // TODO: Add support for 'includeSiblingData'
     const aggregationOptions = buildAggregationOptions(
       initialAggregationOptions,
       queryBuilder.getEntityAggregationOptions(),
