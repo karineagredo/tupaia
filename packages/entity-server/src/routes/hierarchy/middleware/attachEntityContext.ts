@@ -37,10 +37,6 @@ const validateEntitiesAndBuildContext = async (
     .filter((countryCode, index, countryCodes) => countryCodes.indexOf(countryCode) === index) // De-duplicate countryCodes
     .filter(countryCode => req.accessPolicy.allows(countryCode));
 
-  if (allowedCountries.length < 1) {
-    throwNoAccessError(entityCodes);
-  }
-
   if (!entities.every(entity => userCanAccessEntity(entity, allowedCountries))) {
     throwNoAccessError(entityCodes);
   }
