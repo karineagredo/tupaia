@@ -7,17 +7,25 @@ import * as BuildEvents from '../../../../../services/dhis/buildAnalytics/buildE
 import { DhisService } from '../../../../../services/dhis/DhisService';
 import { EventsPuller } from '../../../../../services/dhis/pullers/EventsPuller';
 import { DATA_SOURCES } from '../DhisService.fixtures';
-import { createModelsStub, createDataSourceModelsStub, stubDhisApi } from '../DhisService.stubs';
+import {
+  createModelsStub,
+  createDataSourceModelsStub,
+  createDataBrokerStub,
+  stubDhisApi,
+  stubEntityConnectionEndpoints,
+} from '../DhisService.stubs';
 
-const dhisService = new DhisService(createModelsStub());
+const dhisService = new DhisService(createModelsStub(), createDataBrokerStub());
 const eventsPuller = new EventsPuller(createDataSourceModelsStub(), dhisService.translator);
 dhisService.analyticsPuller = eventsPuller;
 dhisService.pullers.dataGroup = eventsPuller.pull;
+
 let dhisApi;
 
 export const testPullEvents = () => {
   beforeEach(() => {
     dhisApi = stubDhisApi();
+    stubEntityConnectionEndpoints(dhisService);
   });
 
   it('throws an error if multiple data groups are provided', async () =>
@@ -93,6 +101,31 @@ export const testPullEvents = () => {
         options: { dataElementCodes: ['POP01', 'DIF01'] },
         invocationArgs: expect.objectContaining({ dataElementCodes: ['POP01', 'DIF01_DHIS'] }),
       }));
+
+    it('translates project level entities to country level if required', () => {
+      stubEntityConnectionEndpoints(dhisService, [
+        {
+          url: 'hierarchy/explore',
+          query: { fields: 'code,type' },
+          body: { entities: ['explore'] },
+          response: [{ code: 'explore', type: 'project' }],
+        },
+        {
+          url: 'hierarchy/explore/descendants',
+          query: { field: 'code', filter: 'type:country' },
+          body: { entities: ['explore'] },
+          response: ['TO', 'PG'],
+        },
+      ]);
+      assertEventAnalyticsApiWasInvokedCorrectly({
+        dataSources: [DATA_SOURCES.POP01_GROUP],
+        options: {
+          hierarchy: 'explore',
+          organisationUnitCodes: ['explore'],
+        },
+        invocationArgs: expect.objectContaining({ organisationUnitCodes: ['TO', 'PG'] }),
+      });
+    });
   });
 
   describe('data building', () => {

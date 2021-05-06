@@ -5,9 +5,14 @@
 
 import { DhisService } from '../../../../../services/dhis/DhisService';
 import { DATA_SOURCES } from '../DhisService.fixtures';
-import { createModelsStub, stubDhisApi } from '../DhisService.stubs';
+import {
+  createModelsStub,
+  createDataBrokerStub,
+  stubDhisApi,
+  stubEntityConnectionEndpoints,
+} from '../DhisService.stubs';
 
-const dhisService = new DhisService(createModelsStub());
+const dhisService = new DhisService(createModelsStub(), createDataBrokerStub());
 let dhisApi;
 
 export const testPullAnalyticsFromEvents_Deprecated = () => {
@@ -18,6 +23,7 @@ export const testPullAnalyticsFromEvents_Deprecated = () => {
   beforeEach(() => {
     // recreate stub so spy calls are reset
     dhisApi = stubDhisApi();
+    stubEntityConnectionEndpoints(dhisService);
   });
 
   describe('DHIS API invocation', () => {

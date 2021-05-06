@@ -5,9 +5,9 @@
 
 import { DhisService } from '../../../../services/dhis/DhisService';
 import { DATA_SOURCES, DATA_VALUES, DHIS_REFERENCE, SERVER_NAME } from './DhisService.fixtures';
-import { createModelsStub, stubDhisApi } from './DhisService.stubs';
+import { createModelsStub, createDataBrokerStub, stubDhisApi } from './DhisService.stubs';
 
-const dhisService = new DhisService(createModelsStub());
+const dhisService = new DhisService(createModelsStub(), createDataBrokerStub());
 let dhisApi;
 
 export const testDelete = () => {

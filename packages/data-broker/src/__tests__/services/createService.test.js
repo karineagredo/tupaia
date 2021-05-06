@@ -26,7 +26,11 @@ describe('createService()', () => {
   });
 
   it('dhis service', () => {
-    const service = createService(models, 'dhis');
+    const service = createService(
+      models,
+      'dhis',
+      new DataBroker({ session: { getAuthHeader: () => 'test' } }),
+    );
 
     expect(service).toBeInstanceOf(DhisService);
     expect(service).toHaveProperty('models', models);
@@ -42,12 +46,16 @@ describe('createService()', () => {
   });
 
   it('indicator service', () => {
-    const service = createService(models, 'indicator', new DataBroker({ test: true }));
+    const service = createService(
+      models,
+      'indicator',
+      new DataBroker({ session: { getAuthHeader: () => 'test' } }),
+    );
 
     expect(service).toBeInstanceOf(IndicatorService);
     expect(service).toHaveProperty('models', models);
     expect(service).toHaveProperty('api');
     expect(service.api).toBeInstanceOf(IndicatorApi);
-    expect(service.api.aggregator.context.test).toBe(true);
+    expect(service.api.aggregator.context.session.getAuthHeader()).toBe('test');
   });
 });

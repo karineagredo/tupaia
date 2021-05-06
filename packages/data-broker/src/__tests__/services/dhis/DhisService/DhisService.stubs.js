@@ -42,6 +42,20 @@ export const stubDhisApi = ({
   return dhisApi;
 };
 
+export const stubEntityConnectionEndpoints = (dhisService, endpoints = []) => {
+  // eslint-disable-next-line no-param-reassign
+  dhisService.translator.entityConnection.post = (url, query, body) => {
+    const requestedEndpoint = endpoints.find(
+      endpoint =>
+        endpoint.url === url &&
+        JSON.stringify(endpoint.query) === JSON.stringify(query) &&
+        JSON.stringify(endpoint.body) === JSON.stringify(body),
+    );
+
+    return requestedEndpoint ? requestedEndpoint.response : [];
+  };
+};
+
 export const createModelsStub = () => ({
   dataSource: {
     find: async specs =>
@@ -62,6 +76,14 @@ export const createDataSourceModelsStub = () => ({
   getDataElementsInGroup: async groupCode => DATA_ELEMENTS_BY_GROUP[groupCode],
   getTypes: () => ({ DATA_ELEMENT: 'dataElement', DATA_GROUP: 'dataGroup' }),
   getDhisDataTypes: () => ({ DATA_ELEMENT: 'DataElement', INDICATOR: 'Indicator' }),
+});
+
+export const createDataBrokerStub = () => ({
+  context: {
+    session: {
+      getAuthHeader: () => '',
+    },
+  },
 });
 
 /**

@@ -10,11 +10,13 @@ import {
   buildDhisAnalyticsResponse,
   createModelsStub,
   createDataSourceModelsStub,
+  createDataBrokerStub,
   stubDhisApi,
+  stubEntityConnectionEndpoints,
 } from '../DhisService.stubs';
 import { testPullAnalyticsFromEvents_Deprecated } from './testPullAnalyticsFromEvents_Deprecated';
 
-const dhisService = new DhisService(createModelsStub());
+const dhisService = new DhisService(createModelsStub(), createDataBrokerStub());
 const analyticsPuller = new AnalyticsPuller(
   createDataSourceModelsStub(),
   dhisService.translator,
@@ -29,6 +31,7 @@ export const testPullAnalytics = () => {
   beforeEach(() => {
     // recreate stub so spy calls are reset
     dhisApi = stubDhisApi();
+    stubEntityConnectionEndpoints(dhisService);
   });
 
   describe('data source selection', () => {
@@ -94,28 +97,89 @@ export const testPullAnalytics = () => {
         }));
 
       it('supports various API options', async () => {
+        stubEntityConnectionEndpoints(dhisService, [
+          {
+            url: 'hierarchy/explore',
+            query: { fields: 'code,type' },
+            body: { entities: ['TO', 'PG'] },
+            response: [
+              { code: 'TO', type: 'country' },
+              { code: 'PG', type: 'country' },
+            ],
+          },
+        ]);
+
         const options = {
+          outputIdScheme: 'code',
+          hierarchy: 'explore',
+          organisationUnitCodes: ['TO', 'PG'],
+          period: '20200822',
+          startDate: '20200731',
+          endDate: '20200904',
+        };
+
+        const invocationArgs = {
           outputIdScheme: 'code',
           organisationUnitCodes: ['TO', 'PG'],
           period: '20200822',
           startDate: '20200731',
           endDate: '20200904',
           additionalDimensions: ['co'],
+          dataElementCodes: ['POP01'],
         };
 
         return assertAnalyticsApiWasInvokedCorrectly({
           dataSources: [DATA_SOURCES.POP01],
           options,
-          invocationArgs: {
-            dataElementCodes: ['POP01'],
-            ...options,
+          invocationArgs,
+        });
+      });
+
+      it('supports fetch from project level entities', async () => {
+        stubEntityConnectionEndpoints(dhisService, [
+          {
+            url: 'hierarchy/explore',
+            query: { fields: 'code,type' },
+            body: { entities: ['explore'] },
+            response: [{ code: 'explore', type: 'project' }],
           },
+          {
+            url: 'hierarchy/explore/descendants',
+            query: { field: 'code', filter: 'type:country' },
+            body: { entities: ['explore'] },
+            response: ['TO', 'PG'],
+          },
+        ]);
+
+        const options = {
+          outputIdScheme: 'code',
+          hierarchy: 'explore',
+          organisationUnitCodes: ['explore'],
+          period: '20200822',
+          startDate: '20200731',
+          endDate: '20200904',
+        };
+
+        const invocationArgs = {
+          outputIdScheme: 'code',
+          organisationUnitCodes: ['TO', 'PG'],
+          period: '20200822',
+          startDate: '20200731',
+          endDate: '20200904',
+          dataElementCodes: ['POP01'],
+        };
+
+        return assertAnalyticsApiWasInvokedCorrectly({
+          dataSources: [DATA_SOURCES.POP01],
+          options,
+          invocationArgs,
         });
       });
     });
 
     describe('data pulling', () => {
       const basicOptions = {
+        hierarchy: 'explore',
         organisationUnitCodes: ['TO'],
       };
 
@@ -129,6 +193,15 @@ export const testPullAnalytics = () => {
       };
 
       it('single data element', async () => {
+        stubEntityConnectionEndpoints(dhisService, [
+          {
+            url: 'hierarchy/explore',
+            query: { fields: 'code,type' },
+            body: { entities: ['TO'] },
+            response: [{ code: 'TO', type: 'country' }],
+          },
+        ]);
+
         const results = [
           { dataElement: 'POP01', organisationUnit: 'TO', value: 1, period: '20200101' },
         ];
@@ -144,6 +217,15 @@ export const testPullAnalytics = () => {
       });
 
       it('single data element with a different DHIS code', async () => {
+        stubEntityConnectionEndpoints(dhisService, [
+          {
+            url: 'hierarchy/explore',
+            query: { fields: 'code,type' },
+            body: { entities: ['TO'] },
+            response: [{ code: 'TO', type: 'country' }],
+          },
+        ]);
+
         const results = [
           { dataElement: 'DIF01', organisationUnit: 'TO', value: 3, period: '20200103' },
         ];
@@ -161,6 +243,15 @@ export const testPullAnalytics = () => {
       });
 
       it('multiple data elements', async () => {
+        stubEntityConnectionEndpoints(dhisService, [
+          {
+            url: 'hierarchy/explore',
+            query: { fields: 'code,type' },
+            body: { entities: ['TO'] },
+            response: [{ code: 'TO', type: 'country' }],
+          },
+        ]);
+
         const results = [
           { dataElement: 'POP01', organisationUnit: 'TO', value: 1, period: '20200101' },
           { dataElement: 'POP02', organisationUnit: 'TO', value: 2, period: '20200102' },
