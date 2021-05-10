@@ -16,6 +16,25 @@ exports.setup = function (options, seedLink) {
   seed = seedLink;
 };
 
+const dataElementCode = 'STRVEC_LHS13';
+
+const species = [
+  'Ae. aegypti',
+  'Ae. albopictus',
+  'Ae. scutellaris',
+  'Aedes Other',
+  'Aedes spp.',
+  'An. farauti',
+  'An. koliensis',
+  'An. longirostris',
+  'An. punctulatus',
+  'Culex spp.',
+  'Cx. annulirostris',
+  'Cx. quinquefasciatus',
+  'Cx. sitiens',
+  'Mansoni spp.',
+];
+
 const dashboardGroupCode = 'PG_Strive_PNG_Country';
 
 const dashboardReport = {
@@ -28,129 +47,22 @@ const dashboardReport = {
   ],
 };
 
+const getDataClasses = () => {
+  const result = {};
+  species.forEach((specie, index) => {
+    result[specie] = {
+      numerator: { dataValues: [dataElementCode], valueOfInterest: index },
+      denominator: {
+        dataValues: [dataElementCode],
+        valueOfInterest: '*',
+      },
+    };
+  });
+  return result;
+};
+
 const dataBuilderConfig = {
-  dataClasses: {
-    'Ae. aegypti': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 0,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Ae. albopictus': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 1,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Ae. scutellaris': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 2,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Aedes Other': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 3,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Aedes spp.': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 4,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'An. farauti': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 5,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'An. koliensis': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 6,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'An. longirostris': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 7,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'An. punctulatus': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 8,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Culex spp.': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 9,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Cx. annulirostris': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 10,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-    'Cx. quinquefasciatus': {
-      numerator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: 11,
-      },
-      denominator: {
-        dataValues: ['STRVEC_LHS13'],
-        valueOfInterest: '*',
-      },
-    },
-  },
+  dataClasses: getDataClasses(),
   entityAggregation: {
     dataSourceEntityType: 'country',
   },
