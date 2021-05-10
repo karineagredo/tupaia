@@ -23,7 +23,7 @@ export const IconMarker = React.memo(
 IconMarker.propTypes = {
   coordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
   children: PropTypes.node,
-  icon: PropTypes.oneOf(ICON_VALUES),
+  icon: PropTypes.oneOf(ICON_VALUES).isRequired,
   color: PropTypes.string.isRequired,
   scale: PropTypes.number,
   handleClick: PropTypes.func,
@@ -33,5 +33,4 @@ IconMarker.defaultProps = {
   scale: 1,
   children: null,
   handleClick: null,
-  icon: 'pin',
 };

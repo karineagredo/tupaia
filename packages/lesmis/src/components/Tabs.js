@@ -14,28 +14,13 @@ import { FlexStart } from './Layout';
 
 const LoadingTab = () => <Skeleton width={100} height={20} style={{ marginLeft: 30 }} />;
 
-const TabBarOuterContainer = styled.div`
-  border-top: 1px solid ${props => props.theme.palette.grey['400']};
-  border-bottom: 1px solid ${props => props.theme.palette.grey['400']};
-  background: white;
-`;
-
-const TabBarInnerContainer = styled(MuiContainer)`
+export const TabBar = styled(MuiContainer)`
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  border-top: 1px solid ${props => props.theme.palette.grey['400']};
+  border-bottom: 1px solid ${props => props.theme.palette.grey['400']};
 `;
-
-export const TabBar = ({ children, ...props }) => {
-  return (
-    <TabBarOuterContainer {...props}>
-      <TabBarInnerContainer>{children}</TabBarInnerContainer>
-    </TabBarOuterContainer>
-  );
-};
-TabBar.propTypes = {
-  children: PropTypes.arrayOf(PropTypes.element).isRequired,
-};
 
 export const TabBarSection = styled(FlexStart)`
   min-height: 5.5rem;
