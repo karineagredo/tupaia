@@ -9,7 +9,7 @@ import { convertToPeriod, isFuturePeriod, getCurrentPeriod, PERIOD_TYPES } from 
  * Add the analytics together across the periods listed in the analytic response, and return an array
  * with just one analytic per data element/organisation unit pair
  */
-export const averagePerDataElementPerOrgUnit = analytics => {
+export const averagePerDataElementPerOrgUnit = (analytics, aggregationConfig) => {
   const totalsByDataElementAndOrgUnit = [];
   analytics.forEach(analytic => {
     const i = summedAnalytics.findIndex(
