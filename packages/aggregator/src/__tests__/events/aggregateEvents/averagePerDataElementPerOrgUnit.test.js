@@ -3,7 +3,7 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { averagePerDataElementPerOrgUnit } from '../../../../analytics/aggregateAnalytics/aggregations';
+import { averagePerDataElementPerOrgUnit } from '../../../events/aggregateEvents/aggregations';
 
 const BASE_TEST_EVENTS = [
   {

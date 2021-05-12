@@ -4,3 +4,4 @@
  */
 
 export { replaceOrgUnitWithOrgGroup } from './replaceOrgUnitWithOrgGroup';
+export { averagePerDataElementPerOrgUnit } from './averagePerDataElementPerOrgUnit';

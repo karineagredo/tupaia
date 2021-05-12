@@ -4,7 +4,7 @@
  */
 
 import { AGGREGATION_TYPES } from '../../aggregationTypes';
-import { replaceOrgUnitWithOrgGroup } from './aggregations';
+import { replaceOrgUnitWithOrgGroup, averagePerDataElementPerOrgUnit } from './aggregations';
 
 export const aggregateEvents = (
   events,
@@ -16,6 +16,8 @@ export const aggregateEvents = (
       return replaceOrgUnitWithOrgGroup(events, aggregationConfig);
     case AGGREGATION_TYPES.RAW:
       return events;
+    case AGGREGATION_TYPES.AVERAGE_PER_DATA_ELEMENT_PER_ORG_UNIT:
+      return averagePerDataElementPerOrgUnit(events, aggregationConfig);
     default:
       throw new Error('Aggregation type not found');
   }
