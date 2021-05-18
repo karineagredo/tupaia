@@ -17,16 +17,25 @@ type AggregateParams = {
   where: (parser: TransformParser) => boolean;
 };
 
-const merge = (mergedRow: Row, newRow: Row, params: AggregateParams): Row => {
+type AggregationProps = Parameters<typeof aggregations[keyof typeof aggregations]>[3];
+
+const merge = (
+  mergedRow: Row,
+  newRow: Row,
+  params: AggregateParams,
+  groupProps: { [field: string]: AggregationProps },
+): Row => {
   Object.keys(newRow).forEach((field: string) => {
     const aggregation = params.getFieldAggregation(field);
-    aggregations[aggregation](mergedRow, field, newRow[field]);
+    groupProps[field] = groupProps[field] || {};
+    aggregations[aggregation](mergedRow, field, newRow[field], groupProps[field]);
   });
   return mergedRow;
 };
 
 const aggregate = (rows: Row[], params: AggregateParams): Row[] => {
   const groupedRows: { [groupKey: string]: Row } = {};
+  const aggregationProps: { [groupKey: string]: { [field: string]: AggregationProps } } = {};
   const otherRows: Row[] = [];
 
   const parser = new TransformParser(rows, functions);
@@ -37,7 +46,9 @@ const aggregate = (rows: Row[], params: AggregateParams): Row[] => {
       return;
     }
     const groupKey = params.createGroupKey(row);
-    groupedRows[groupKey] = merge(groupedRows[groupKey] || {}, row, params);
+    groupedRows[groupKey] = groupedRows[groupKey] || {};
+    aggregationProps[groupKey] = aggregationProps[groupKey] || {};
+    merge(groupedRows[groupKey], row, params, aggregationProps[groupKey]);
     parser.next();
   });
 
