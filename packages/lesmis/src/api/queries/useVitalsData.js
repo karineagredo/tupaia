@@ -74,8 +74,8 @@ const useDistrictReport = entity =>
     entity?.type === 'sub_district',
   );
 
-const useMultiSchoolReport = (entities, rootEntity) => {
-  const decendants = getDecendantCodesOfType(entities, rootEntity?.code, 'school');
+const useMultiSchoolReport = (rootEntity, entities) => {
+  const decendants = entities.filter(entity => entity.type === 'school').map(entity => entity.code);
   return useReport(
     rootEntity,
     'LESMIS_multi_school_vitals',
@@ -89,8 +89,10 @@ const useMultiSchoolReport = (entities, rootEntity) => {
   );
 };
 
-const useMultiDistrictReport = (entities, rootEntity) => {
-  const decendants = getDecendantCodesOfType(entities, rootEntity?.code, 'sub_district');
+const useMultiDistrictReport = (rootEntity, entities) => {
+  const decendants = entities
+    .filter(entity => entity.type === 'sub_district')
+    .map(entity => entity.code);
   return useReport(
     rootEntity,
     'LESMIS_sub_district_vitals',
@@ -159,14 +161,14 @@ const useDistrictInformation = (entities, rootEntity) => {
   };
 };
 
-const useProvinceInformation = (entities, rootEntity) => {
+export const useProvinceInformation = (entityCode, descendants) => {
   const { data: provinceData, isLoading: provinceLoading } = useMultiDistrictReport(
-    entities,
-    rootEntity,
+    entityCode,
+    descendants,
   );
   const { data: subSchoolsData, isLoading: subSchoolsLoading } = useMultiSchoolReport(
-    entities,
-    rootEntity,
+    entityCode,
+    descendants,
   );
 
   return {
