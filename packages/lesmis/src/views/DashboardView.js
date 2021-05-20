@@ -19,6 +19,7 @@ import {
   TabBarSection,
   EntityVitalsItem,
   PartnerLogo,
+  FlexStart,
 } from '../components';
 import { useUrlParams, useUrlSearchParams } from '../utils';
 import { useVitalsData, useEntityData } from '../api/queries';
@@ -121,10 +122,7 @@ const Container = styled(MuiContainer)`
   padding-right: 0;
 `;
 
-const FlexRow = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+const FlexRow = styled(FlexStart)`
   flex-wrap: wrap;
   height: 100%;
 `;
@@ -156,6 +154,7 @@ const TitleContainer = styled.div`
 
 const RedTitle = styled(Typography)`
   font-weight: 500;
+  text-transform: capitalize;
   color: ${props => props.theme.palette.primary.main};
   padding-top: 30px;
 `;
@@ -178,16 +177,15 @@ const VerticalDivider = styled(MuiDivider)`
   height: 7rem;
 `;
 
-const PhotoOrMap = ({ vitals }) => {
+const PhotoOrMap = ({ entityData }) => {
+  const { Photo, bounds, region, type, point } = entityData;
   const [validImage, setValidImage] = useState(true);
-  if (vitals.isLoading) return null;
 
-  if (vitals.Photo && validImage)
-    return (
-      <img src={vitals.Photo} alt="place" width="720px" onError={() => setValidImage(false)} />
-    );
+  if (Photo && validImage) {
+    return <img src={Photo} alt="place" width="720px" onError={() => setValidImage(false)} />;
+  }
 
-  return <MiniMap entityCode={vitals.code} />;
+  return <MiniMap bounds={bounds} region={region} type={type} point={point} />;
 };
 
 const CountryView = ({ vitals }) => {
@@ -480,13 +478,27 @@ const VitalsView = ({ vitals }) => {
   }
 };
 
+const Column1 = styled.div`
+  flex: 1;
+`;
+
+const Column2 = styled.div`
+  display: flex;
+  width: 370px;
+`;
+
+const Column3 = styled.div`
+  width: 370px;
+`;
+
 export const DashboardView = () => {
   const { entityCode } = useUrlParams();
   const { data: entityData } = useEntityData(entityCode);
+  const vitals = useVitalsData(entityCode);
+
   const tabOptions = makeTabOptions(entityData?.type);
   const [params, setParams] = useUrlSearchParams();
 
-  const vitals = useVitalsData(entityCode);
   const selectedTab = params.dashboardTab || tabOptions[0].value;
 
   const handleChangeTab = event => {
@@ -495,11 +507,20 @@ export const DashboardView = () => {
 
   return (
     <>
-      <Wrapper>
-        <Container maxWidth={false}>
-          <VitalsView vitals={vitals} />
-        </Container>
-      </Wrapper>
+      <Container maxWidth={false}>
+        <Column1>
+          <RedTitle variant="h4">{entityData && entityData.type} Profile:</RedTitle>
+        </Column1>
+        <Column2>{entityData ? <PhotoOrMap entityData={entityData} /> : 'Loading...'}</Column2>
+        <Column3>
+          <GreyTitle>Development Partner Support</GreyTitle>
+          <FlexStart>
+            {Object.entries(vitals).map(([key, value]) =>
+              value === true ? <PartnerLogo code={key} key={key} /> : null,
+            )}
+          </FlexStart>
+        </Column3>
+      </Container>
       {tabOptions.map(({ value, Body, Component }) => (
         <TabPanel key={value} isSelected={value === selectedTab} Panel={React.Fragment}>
           <Component

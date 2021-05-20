@@ -41,30 +41,32 @@ const CountryMask = ({ countryData }) => {
   return <InversePolygonMask region={countryData?.region} />;
 };
 
-const RegionPolygon = ({ entityData }) => {
-  if (!entityData?.region) return null;
-  if (entityData?.type === 'country') return null; // country is fine without, as it has the mask
+const RegionPolygon = ({ region, type }) => {
+  if (!region) return null;
+  if (type === 'country') return null; // country is fine without, as it has the mask
 
-  return <BasicPolygon positions={entityData?.region} interactive={false} />;
+  return <BasicPolygon positions={region} interactive={false} />;
 };
 
-const PointMarker = ({ entityData }) =>
-  entityData?.point && <IconMarker coordinates={entityData?.point} color={RED} scale={1.5} />;
+const PointMarker = ({ point }) =>
+  point && <IconMarker coordinates={point} color={RED} scale={1.5} />;
 /* eslint-enable react/prop-types */
 
-export const MiniMap = ({ entityCode }) => {
-  const { data: countryData, isLoading: isLoadingCountryData } = useEntityData(COUNTRY_CODE);
-  const { data: entityData, isLoading: isLoadingEntityData } = useEntityData(entityCode);
+export const MiniMap = ({ bounds, region, point, type }) => {
+  // const { data: countryData, isLoading: isLoadingCountryData } = useEntityData(COUNTRY_CODE);
 
-  return isLoadingCountryData || isLoadingEntityData ? null : (
-    <Map bounds={entityData?.bounds} dragging={false} zoomControl={false}>
+  return (
+    <Map bounds={bounds} dragging={false} zoomControl={false}>
       <BaseTileLayer url={TILE_SET_URL} />
-      <CountryMask countryData={countryData} />
-      <RegionPolygon entityData={entityData} />
-      <PointMarker entityData={entityData} />
+      {/*<CountryMask countryData={countryData} />*/}
+      <RegionPolygon region={region} type={type} />
+      <PointMarker point={point} />
     </Map>
   );
 };
 MiniMap.propTypes = {
-  entityCode: PropTypes.string.isRequired,
+  bounds: PropTypes.string.isRequired,
+  region: PropTypes.string.isRequired,
+  point: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
 };
