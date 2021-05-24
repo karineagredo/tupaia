@@ -46,7 +46,7 @@ const getEntityAggregation = level => {
   const aggregationEntityType = level === 'facility' ? {} : level;
   return {
     dataSourceEntityType: 'facility',
-    ...aggregationEntityType,
+    aggregationEntityType,
   };
 };
 
