@@ -15,6 +15,8 @@ export const EntityView = () => {
   const { breadcrumbs, isLoading } = useEntityBreadcrumbs();
   const { entityCode, view } = match.params;
 
+  console.log('entity view...');
+
   return (
     <>
       <Toolbar>

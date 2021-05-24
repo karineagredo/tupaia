@@ -17,7 +17,7 @@ import {
 import { YearSelector, MapOverlaysPanel } from '../components';
 import { useMapOverlayReportData, useMapOverlaysData } from '../api';
 import { TILE_SETS, DEFAULT_DATA_YEAR } from '../constants';
-import { useUrlParams, useUrlSearchParam } from '../utils';
+import { useUrlParams, useUrlSearchParam, location } from '../utils';
 
 const Container = styled.div`
   position: relative;
@@ -71,7 +71,7 @@ const getDefaultTileSet = () => {
 
 export const MapView = () => {
   const { entityCode } = useUrlParams();
-  const [selectedYear, setSelectedYear] = useUrlSearchParam('year', DEFAULT_DATA_YEAR);
+  const [selectedYear, setSelectedYear] = useUrlSearchParam(location, 'year', DEFAULT_DATA_YEAR);
   const [activeTileSetKey, setActiveTileSetKey] = useState(getDefaultTileSet());
 
   const { data: overlaysData, isLoading: isLoadingOverlays } = useMapOverlaysData({ entityCode });

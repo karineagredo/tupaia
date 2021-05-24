@@ -22,7 +22,7 @@ import {
   YearSelector,
 } from '../components';
 import { DEFAULT_DATA_YEAR, NAVBAR_HEIGHT_INT } from '../constants';
-import { useUrlSearchParam } from '../utils';
+import { useUrlSearchParam, location } from '../utils';
 
 const StickyTabBarContainer = styled.div`
   position: sticky;
@@ -106,8 +106,8 @@ const useStickyBar = () => {
 };
 
 export const DashboardReportTabView = ({ entityCode, TabSelector }) => {
-  const [selectedYear, setSelectedYear] = useUrlSearchParam('year', DEFAULT_DATA_YEAR);
-  const [selectedDashboard, setSelectedDashboard] = useUrlSearchParam('subDashboard');
+  const [selectedYear, setSelectedYear] = useUrlSearchParam(location, 'year', DEFAULT_DATA_YEAR);
+  const [selectedDashboard, setSelectedDashboard] = useUrlSearchParam(location, 'subDashboard');
   const { data, isLoading, isError, error } = useDashboardData(entityCode);
   const { scrollToTop, topRef, isScrolledPastTop, onLoadTabBar } = useStickyBar();
   const activeDashboard = selectedDashboard || getDefaultDashboard(data);

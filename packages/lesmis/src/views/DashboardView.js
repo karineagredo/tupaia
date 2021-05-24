@@ -20,7 +20,7 @@ import {
   EntityVitalsItem,
   PartnerLogo,
 } from '../components';
-import { useUrlParams, useUrlSearchParams } from '../utils';
+import { useUrlParams, useUrlSearchParams, location } from '../utils';
 import { useVitalsData, useEntityData } from '../api/queries';
 
 const StyledSelect = styled(Select)`
@@ -484,7 +484,7 @@ export const DashboardView = React.memo(() => {
   const { entityCode } = useUrlParams();
   const { data: entityData } = useEntityData(entityCode);
   const dropdownOptions = makeDropdownOptions(entityData?.type);
-  const [params, setParams] = useUrlSearchParams();
+  const [params, setParams] = useUrlSearchParams(location);
 
   const vitals = useVitalsData(entityCode);
   const selectedOption = params.dashboard || dropdownOptions[0].value;
