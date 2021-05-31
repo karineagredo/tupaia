@@ -3,6 +3,8 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
+import { reformatDateStringWithoutTz } from './stripTimezoneFromDate';
+
 export * from './array';
 export { AsyncTaskQueue } from './AsyncTaskQueue';
 export * from './compare';
@@ -21,6 +23,7 @@ export { getCountryCode } from './getCountryCode';
 export { requireEnv } from './requireEnv';
 export { getUniqueEntries } from './getUniqueEntries';
 export { getLoggerInstance } from './getLoggerInstance';
+export { getTokenExpiry } from './getTokenExpiry';
 export { RemoteGitRepo } from './RemoteGitRepo';
 export * from './object';
 export * from './request';
@@ -33,7 +36,7 @@ export { WorkBookParser } from './WorkBookParser';
 export { checkValueSatisfiesCondition } from './checkValueSatisfiesCondition';
 export { addExportedDateAndOriginAtTheSheetBottom } from './addExportDateAndOriginInExcelExportData';
 export { getBrowserTimeZone } from './getBrowserTimeZone';
-export { stripTimezoneFromDate } from './stripTimezoneFromDate';
+export { stripTimezoneFromDate, reformatDateStringWithoutTz } from './stripTimezoneFromDate';
 export { VALUE_TYPES, formatDataValueByType } from './formatDataValueByType';
 export { createClassExtendingProxy } from './proxy';
 export { fetchPatiently } from './fetchPatiently';

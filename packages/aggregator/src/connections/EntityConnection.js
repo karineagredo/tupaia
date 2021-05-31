@@ -5,7 +5,7 @@
  */
 import { ApiConnection } from '@tupaia/server-boilerplate';
 
-const { ENTITY_SERVER_API_URL = 'http://localhost:8050/v1' } = process.env;
+const { ENTITY_API_URL = 'http://localhost:8050/v1' } = process.env;
 
 const CLAUSE_DELIMITER = ';';
 const FIELD_VALUE_DELIMITER = ':';
@@ -40,7 +40,7 @@ const constructFilterParam = filter =>
     .join(CLAUSE_DELIMITER);
 
 export class EntityConnection extends ApiConnection {
-  baseUrl = ENTITY_SERVER_API_URL;
+  baseUrl = ENTITY_API_URL;
 
   constructor(session) {
     const { getAuthHeader } = session;
