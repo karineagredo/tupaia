@@ -11,6 +11,7 @@ import { ROUTES } from './routes';
 import { PROFILE_ROUTES } from './profileRoutes';
 import { PrivateRoute } from './authentication';
 import { LoginPage } from './pages/LoginPage';
+import { PermissionGroupsSummaryPage } from './pages/PermissionGroupsSummmaryPage';
 
 export const App = () => {
   const headerEl = React.useRef(null);
@@ -22,6 +23,9 @@ export const App = () => {
   return (
     <Router>
       <Switch>
+        <Route path="/permission-groups">
+          <PermissionGroupsSummaryPage />
+        </Route>
         <Route path="/login" exact>
           <LoginPage />
         </Route>
